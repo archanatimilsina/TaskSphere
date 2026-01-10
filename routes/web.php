@@ -63,9 +63,8 @@ Route::get('/react/admin', function () {
 
 
 Route::get('/react/admin/{any}', function () {
-    return view('adminReact')->where('any','.*')->name('adminReact'); 
-});
-
+    return view('adminReact');
+})->where('any','.*')->name('adminReact');
 
 Route::get('/react/projectManager', function () {
     return view('projectManagerReact'); 
@@ -73,8 +72,9 @@ Route::get('/react/projectManager', function () {
 
 
 Route::get('/react/projectManager/{any}', function () {
-    return view('projectManagerReact')->where('any','.*')->name('projectManagerReactAny'); 
-});
+    return view('projectManagerReact');
+})->where('any','.*')->name('projectManagerReactAny');
+
 
 
 Route::get('/react/user', function () {
@@ -84,5 +84,6 @@ Route::get('/react/user', function () {
 
 
 Route::get('/react/user/{any}', function () {
-    return view('userReact')->where('any','.*')->name('userReactAny'); 
-});
+    return view('userReact');
+})->where('any','.*')->name('userReactAny');
+
