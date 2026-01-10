@@ -45,7 +45,7 @@ It integrates a **Laravel backend** with a **React frontend using Vite**, allowi
 ```
 git clone https://github.com/yourusername/TaskSphere.git
 ```
-### **2. Backend (Laravel) Setup
+### **2. Backend (Laravel) Setup**
 
 Install PHP dependencies:
 ```
@@ -78,7 +78,7 @@ php artisan serve
 ```
 now, Backend will run at: http://127.0.0.1:8000
 
-### **3. Frontend (React + Vite) Setup
+### **3. Frontend (React + Vite) Setup**
 Install Node dependencies:
 ```
 npm install
@@ -89,4 +89,8 @@ Build frontend for production:
 npm run build
 ```
 
+Run Vite dev server (development mode):
+```
+npm run dev
+```
 
