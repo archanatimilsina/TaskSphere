@@ -15,7 +15,7 @@ import Profile from './components/Profile';
 import Notice from './components/Notice';
 import NoticeDash from './components/NoticeDash';
 import UserLogout from './components/UserLogout';
-const UserApp = () => {
+export const UserApp = () => {
     return (
         <BrowserRouter basename='/react/user'>
           <Routes>
