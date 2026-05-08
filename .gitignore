@@ -28,7 +28,7 @@
 /backend/.editorconfig
 /backend/.env.example
 /backend/.gitattributes
-
+.DS_Store
 
 
 
