@@ -5,6 +5,7 @@ import Comment from "./Comment";
 import Members from "./Members";
 import WorkspaceTask from "./WorkspaceTask";
 import { useNavigate, useLocation } from "react-router-dom";
+import styled from 'styled-components';
 
 
 // Create simple small components
@@ -52,3 +53,55 @@ function WorkspaceDash() {
 }
 
 export default WorkspaceDash;
+
+const WorkspaceDashContainer = styled.div`
+  
+.headBar
+{
+  width: 500px;
+  display: flex ;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  margin: auto;
+  margin-top: 20px;
+  
+  
+}
+.headBar span{
+  color: black;
+  font-family: 'Baloo 2', cursive;
+  cursor: pointer;
+}
+
+.headBar span.active {
+    border-bottom: 2px solid gray; /* Change the color as needed */
+}
+.DashMain
+{
+    width: 100%;
+box-shadow: 0 2px 8px rgb(0,0,0,0.5);
+height: 86%;
+overflow-y: auto;
+margin-top: 50px;
+padding: 50px;
+
+}
+
+.backButton {
+  margin: 20px;
+  padding: 10px 20px;
+  background-color: #64748b; /* slate-500 */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.backButton:hover {
+  background-color: #475569; /* slate-600 */
+}
+
+`;

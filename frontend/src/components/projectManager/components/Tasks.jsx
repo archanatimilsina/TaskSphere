@@ -3,12 +3,13 @@ import useFetch from "../../hooks/UseFetch";
 import '../assets/css/tasks.css';
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import styled from 'styled-components';
 
 function Tasks()
 {
   const { DeleteData,  loading:loading2, error:error2 ,data: deleteResult} = useDelete();
-const {data, loading, error} = useFetch("/api/taskIndex");
-const { data: employees, loading: loading1, error: error1 } = useFetch("/api/allUsers");
+const {data, loading, error} = useFetch("http://localhost:8000/api/taskIndex");
+const { data: employees, loading: loading1, error: error1 } = useFetch("http://localhost:8000/api/allUsers");
 const [showUpdateModal,setShowUpdateModal]=useState(false);
  const [showDeleteModal,setShowDeleteModal]=useState(false);
    const [selectedAppId,setSelectedAppId]=useState(null);
@@ -51,7 +52,7 @@ const assignTask=()=>
   navigate("/TaskCreateForm"); 
 }
 const ConfirmDelete = async () => {
-  const result = await DeleteData(`/api/taskDelete/${selectedAppId}`);
+  const result = await DeleteData(`http://localhost:8000/api/taskDelete/${selectedAppId}`);
   console.log(result);
   if (result?.status === true) {
     alert("task Deleted ");
@@ -184,3 +185,128 @@ return (
 )
 }
 export default Tasks;
+
+const TasksContainer = styled.div`
+  
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+.header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    border-bottom: 2px solid #334155;
+}
+
+#taskHeading {
+    font-size: 2.5rem;
+    color: black;
+   
+}
+
+#filter {
+    font-size: 1.8rem;
+    color: #f1f5f9;
+    cursor: pointer;
+    transition: color 0.3s, transform 0.3s;
+}
+
+#filter:hover {
+    color: #94a3b8;
+    transform: scale(1.2);
+}
+
+.table-container {
+    max-height: 70vh;
+    overflow-y: auto;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    background-color: white;
+    padding: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #334155;
+    color: black !important;
+}
+
+
+/* 
+tbody tr:hover {
+    background-color: #707884;
+} */
+
+@media screen and (max-width: 768px) {
+    #heading {
+        font-size: 2rem;
+    }
+
+    th, td {
+        font-size: 0.9rem;
+        padding: 8px 10px;
+    }
+
+    #filter {
+        font-size: 1.5rem;
+    }
+}
+.TaskResponseBtn
+{
+    width: 70px;
+    height: 40px;
+    color: white;
+    border: 1px solid black;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+.TaskResponseBtn:hover{
+    background-color: #707884;
+}
+.UpdateBtn
+{
+    background-color: #1e293b;
+}
+.DeleteBtn
+{
+    background-color: #1e293b
+}
+/* .ResponseTd
+{
+    height: initial;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+} */
+
+
+.assignTask
+{
+    width: 160px;
+    height: 50px;
+    background-color:#1e293b;
+    position: absolute;
+    right: 70px;
+  border: none;
+    color: white;
+    border-radius: 20px;
+    font-size: 20px;
+ 
+}
+
+
+`;

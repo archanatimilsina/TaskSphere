@@ -1,10 +1,11 @@
 import React from "react";
 import { Link, Outlet } from "react-router-dom";
 import "../assets/css/layoutProjectManager.css";
+import styled from 'styled-components';
 
 export default function LayoutProjectManager() {
   return (
-    <>
+    <LayoutProjectManagerContainer>
        <div className="sidebar" id="sidebar">
         <h2>Tasksphere</h2>
         <Link to="projectManagerDash">Dashboard</Link>
@@ -20,6 +21,60 @@ export default function LayoutProjectManager() {
       <div id="main">
         <Outlet />
       </div>
-    </>
+    </LayoutProjectManagerContainer>
   );
 }
+const LayoutProjectManagerContainer = styled.div`
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body{
+    display: flex;
+    height: 100vh;
+    flex-direction: row;
+    padding: 0 !important;
+  }
+
+  .sidebar {
+    width: 250px;
+    background-color: #1e293b;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .sidebar h2 {
+    margin-bottom: 30px;
+    font-size: 24px;
+    text-align: center;
+  }
+
+  .sidebar a {
+    padding: 12px 20px;
+    margin: 5px 0;
+    color: white;
+    text-decoration: none;
+    display: block;
+    border-radius: 5px;
+    transition: background 0.2s ease;
+  }
+
+  .sidebar a:hover {
+    background-color: #334155;
+  }
+
+  #main {
+    flex: 1;
+    padding: 20px;
+    background-color: #f1f5f9;
+    overflow-y: auto;
+  width: 100%;
+  }
+
+
+`;

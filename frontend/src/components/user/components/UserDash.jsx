@@ -1,48 +1,40 @@
 import React, { useState, useEffect } from "react";
-import "../assets/css/userDash.css";
-
 import { useNavigate } from "react-router-dom";
-import usePost from "../../hooks/usePost";
+import usePost from "../../../hooks/usePost";
+import styled from 'styled-components';
 
 export default function UserDash() {
-  // const employeeId= localStorage.getItem("userId");
-  const employeeId="86";
- const { postData } = usePost();
-  const [data, setData] = useState(null); 
+  // Try to get actual ID from storage, fallback to "86" for testing
+  const employeeId = localStorage.getItem("userId") || "86";
+  const { postData } = usePost();
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); 
+  const [error, setError] = useState(null);
   const [showDash, setShowDash] = useState(true);
-  const [selectedWorkspace,setselectedWorkspace] =useState(null);
-  const [selectedTodo,setselectedTodo]=useState(null);
-  const [selectedProject,setselectedProject]=useState(null);
-  const navigate=useNavigate();
-  
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch(`/api/userDashView/${employeeId}`);
         if (!response.ok) {
-          throw new Error("Failed to fetch data");
+          throw new Error("Failed to fetch dashboard data.");
         }
         const result = await response.json();
-  
-        // 🔍 Filter only involved projects
+
+        // Filter projects, workspaces, and tasks based on involvement arrays
         const involvedProjects = result.data.projects.filter(project =>
           result.data.projectInvolved.includes(project.id)
         );
-  
-        // 🔍 Filter only involved workspaces
+
         const involvedWorkspaces = result.data.workspaces.filter(workspace =>
           result.data.workspaceInvolved.includes(workspace.id)
         );
-  
-        // 🔍 Filter only involved tasks
+
         const involvedTasks = result.data.tasks.filter(task =>
           result.data.taskInvolved.includes(task.id)
         );
-  
-        // 🧠 Now replace original data with filtered data
+
         const filteredData = {
           ...result,
           data: {
@@ -52,7 +44,7 @@ export default function UserDash() {
             tasks: involvedTasks,
           }
         };
-  
+
         setData(filteredData);
         setLoading(false);
       } catch (err) {
@@ -60,108 +52,74 @@ export default function UserDash() {
         setLoading(false);
       }
     };
-  
+
     fetchData();
   }, [employeeId]);
-  
 
-const OpenWorkspace=(id)=>
-{
-  setselectedWorkspace(id);
-  navigate('/workspaceDash',{state:{workspaceId :id}});
-}
-const OpenProject=(id)=>
-{
-  setselectedProject(id);
-  navigate('/projectDash',{ state: { selectedProjectId: id } });
-}
-const ChangeTodoStatus = async (id, status, employeeId) => {
-  setselectedTodo(id);
-
-  const updatedStatus = status === "pending" ? "completed" : "pending";
-
-  const input = {
-    id: id,
-    status: updatedStatus,
-    employeeId: employeeId,
+  const OpenWorkspace = (id) => {
+    navigate('/workspaceDash', { state: { workspaceId: id } });
   };
 
-  // Post data to change the status in the database
-  await postData("/api/changeTodoStatus", input);
+  const OpenProject = (id) => {
+    navigate('/projectDash', { state: { selectedProjectId: id } });
+  };
 
-  // Update the status on the frontend (state)
-  const updatedTodos = data.data.todo.map((todo) => {
-    if (todo.id === id) {
-      return { ...todo, status: updatedStatus }; // Update the status of the specific todo
-    }
-    return todo;
-  });
+  const ChangeTodoStatus = async (id, status, empId) => {
+    const updatedStatus = status === "pending" ? "completed" : "pending";
+    const input = { id: id, status: updatedStatus, employeeId: empId };
 
-  // Set the updated todos back to the state
-  setData((prevData) => ({
-    ...prevData,
-    data: {
-      ...prevData.data,
-      todo: updatedTodos, // Update the todos array with the new status
-    },
-  }));
-};
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+    await postData("/api/changeTodoStatus", input);
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+    const updatedTodos = data.data.todo.map((todo) => {
+      if (todo.id === id) {
+        return { ...todo, status: updatedStatus };
+      }
+      return todo;
+    });
+
+    setData((prevData) => ({
+      ...prevData,
+      data: {
+        ...prevData.data,
+        todo: updatedTodos,
+      },
+    }));
+  };
+
+  if (loading) return <div className="loading">Loading Dashboard...</div>;
+  if (error) return <div className="error">Error: {error}</div>;
 
   return (
-    <div>
+    <UserDashContainer>
       {showDash && (
         <>
-
-
-<h3 className="ReportHead">Report</h3>
+          <h3 className="ReportHead">Report Overview</h3>
           <div className="ReportIndex">
-              <div  className="reportRow">
-                <ul>
-                  <li><strong>Project Count:</strong></li>
-                  <li>
-                   {data.data.projectCount}
-                  </li>
-                </ul>
-              </div>
-
-              <div  className="reportRow">
-                <ul>
-                  <li><strong>Workspaces Count:</strong></li>
-                  <li>
-                {data.data.workspaceCount}
-                  </li>
-                </ul>
-              </div>
-
-              <div  className="reportRow">
-                <ul>
-                  <li><strong>Tasks Count:</strong></li>
-                  <li>
-               {data.data.taskCount}
-                  </li>
-                </ul>
-              </div>
-
-              <div  className="reportRow">
-                <ul>
-                  <li><strong>Employee Count:</strong></li>
-                  <li>
-                    {data.data.employeeCount}
-                  </li>
-                </ul>
-              </div>
-
+            <div className="reportRow">
+              <ul>
+                <li><strong>Project Count</strong></li>
+                <li>{data.data.projectCount}</li>
+              </ul>
+            </div>
+            <div className="reportRow">
+              <ul>
+                <li><strong>Workspaces</strong></li>
+                <li>{data.data.workspaceCount}</li>
+              </ul>
+            </div>
+            <div className="reportRow">
+              <ul>
+                <li><strong>Tasks</strong></li>
+                <li>{data.data.taskCount}</li>
+              </ul>
+            </div>
+            <div className="reportRow">
+              <ul>
+                <li><strong>Team Members</strong></li>
+                <li>{data.data.employeeCount}</li>
+              </ul>
+            </div>
           </div>
-
-
-
 
           <h3 className="workspaceHead">Workspaces</h3>
           <div className="workspaceIndex">
@@ -169,7 +127,11 @@ const ChangeTodoStatus = async (id, status, employeeId) => {
               <div key={index} className="projectRow">
                 <ul>
                   <li><strong>{workspace.name}</strong></li>
-                  <li><button className="statusBtn" onClick={()=>OpenWorkspace(workspace.id)}>Open</button></li>
+                  <li>
+                    <button className="statusBtn" onClick={() => OpenWorkspace(workspace.id)}>
+                      Open Workspace
+                    </button>
+                  </li>
                 </ul>
               </div>
             ))}
@@ -178,24 +140,21 @@ const ChangeTodoStatus = async (id, status, employeeId) => {
           <div className="secondDiv">
             <div className="todo">
               <div className="todoBar">
-                <h1 className="todoHead">Todo</h1>
+                <h1 className="todoHead">To-Do List</h1>
                 <i className="fa-solid fa-plus btn btn-link" id="filter"></i>
               </div>
-
               <div className="todoBody">
-              
                 {data.data.todo.map((todo, index) => (
                   <div key={index} className="todolist">
                     <div className="todoItem">
-                      <span className="todoSerial">{index+1}</span>
+                      <span className="todoSerial">{index + 1}</span>
                       <span className="todoName">{todo.todo}</span>
-                      <span 
-          className={`todoStatus ${todo.status.toLowerCase()}`} 
-          onDoubleClick={(e) => {
-            e.preventDefault(); 
-            ChangeTodoStatus(todo.id, todo.status, todo.employeeId);
-          }}
-        >{todo.status}</span>
+                      <span
+                        className={`todoStatus ${todo.status.toLowerCase()}`}
+                        onDoubleClick={() => ChangeTodoStatus(todo.id, todo.status, todo.employeeId)}
+                      >
+                        {todo.status}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -204,7 +163,7 @@ const ChangeTodoStatus = async (id, status, employeeId) => {
 
             <div className="project">
               <div className="projectBar">
-                <h1 className="projectHead">Projects</h1>
+                <h1 className="projectHead">Recent Projects</h1>
               </div>
               <div className="projectBody">
                 {data.data.projects.map((project, index) => (
@@ -213,7 +172,7 @@ const ChangeTodoStatus = async (id, status, employeeId) => {
                       <span className="projectSNO">{index + 1}</span>
                       <span className="projectTitle">{project.name}</span>
                       <span className="ProjectOpenBtn">
-                        <button onClick={()=>OpenProject(project.id)}>Open</button>
+                        <button onClick={() => OpenProject(project.id)}>View</button>
                       </span>
                     </div>
                   </div>
@@ -223,15 +182,15 @@ const ChangeTodoStatus = async (id, status, employeeId) => {
           </div>
 
           <div className="pmthirdDiv">
-            <h1 id="pmheading">Tasks</h1>
+            <h1 id="pmheading">Assigned Tasks</h1>
             <div className="pmtable-container">
               <table>
                 <thead>
                   <tr>
                     <th>S.N</th>
-                    <th>Name</th>
+                    <th>Task Name</th>
                     <th>Description</th>
-                    <th>Employee Username</th>
+                    <th>Assigned To</th>
                     <th>Start Date</th>
                     <th>End Date</th>
                     <th>Status</th>
@@ -244,9 +203,7 @@ const ChangeTodoStatus = async (id, status, employeeId) => {
                       <td>{index + 1}</td>
                       <td>{task.name}</td>
                       <td>{task.description}</td>
-                      <td>
-                        {task.employee}
-                      </td>
+                      <td>{task.employee}</td>
                       <td>{task.sdate}</td>
                       <td>{task.edate}</td>
                       <td>{task.status}</td>
@@ -259,6 +216,137 @@ const ChangeTodoStatus = async (id, status, employeeId) => {
           </div>
         </>
       )}
-    </div>
+    </UserDashContainer>
   );
 }
+
+const UserDashContainer = styled.div`
+  padding: 20px;
+  background-color: #f8fafc;
+  min-height: 100vh;
+
+  .ReportIndex, .workspaceIndex {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 25px;
+    overflow-x: auto;
+    padding: 15px 5px;
+    scrollbar-width: thin;
+    &::-webkit-scrollbar { height: 6px; }
+    &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+  }
+
+  .reportRow, .projectRow {
+    min-width: 260px;
+    background-color: #1e293b;
+    border-radius: 16px;
+    padding: 24px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { margin: 8px 0; font-size: 1.1rem; }
+    &:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
+  }
+
+  .statusBtn, .ProjectOpenBtn button {
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background-color: #059669; }
+  }
+
+  .workspaceHead, .ReportHead {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.5rem;
+    margin: 20px 0 10px;
+    color: #1e293b;
+  }
+
+  .secondDiv {
+    display: flex;
+    gap: 30px;
+    margin: 40px 0;
+    @media (max-width: 1024px) { flex-direction: column; }
+  }
+
+  .todo, .project {
+    flex: 1;
+    height: 500px;
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .todoBody, .projectBody {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 15px;
+    padding-right: 5px;
+  }
+
+  .todolist, .projectlist {
+    background-color: #1e293b;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 15px 20px;
+    color: white;
+    transition: transform 0.2s;
+    &:hover { transform: scale(1.01); }
+  }
+
+  .todoItem, .projectItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .todoStatus {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    cursor: pointer;
+    &.pending { background: #ef4444; color: white; }
+    &.completed { background: #10b981; color: white; }
+  }
+
+  .pmthirdDiv {
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 30px;
+    margin-top: 30px;
+  }
+
+  .pmtable-container {
+    overflow-x: auto;
+    margin-top: 20px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      th { background: #f1f5f9; color: #475569; font-weight: 600; }
+      th, td { padding: 16px; text-align: left; border-bottom: 1px solid #e2e8f0; color: #1e293b; }
+      tbody tr:hover { background: #f8fafc; }
+    }
+  }
+
+  #pmheading {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.8rem;
+    color: #1e293b;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+`;

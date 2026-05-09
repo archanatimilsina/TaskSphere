@@ -43,5 +43,8 @@ export const UserApp = () => {
       );
 };
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<UserApp />);
+export default UserApp
+
+
+// const root = ReactDOM.createRoot(document.getElementById("root"));
+// root.render(<UserApp />);

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import '../assets/css/sendEmail.css';
 import usePost from '../../hooks/UsePost';
+import styled from 'styled-components';
 
 const SendEmail = () => {
     const {postData, loading, error, data}=usePost();
@@ -26,7 +27,7 @@ const SendEmail = () => {
       return;
     }
 
-    const result = await postData("/api/sendEmail",formData);
+    const result = await postData("http://localhost:8000/api/sendEmail",formData);
     if(result.status===true)
     {
       alert("Email has sent successfully");
@@ -83,3 +84,81 @@ const SendEmail = () => {
 };
 
 export default SendEmail;
+
+
+const SendEmailContainer = styled.div`
+  
+/* emailForm.css */
+.email-form-container {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  .email-form h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .email-form label {
+    display: block;
+    margin-bottom: 15px;
+    color: #444;
+    font-weight: 500;
+  }
+  
+  .email-form input,
+  .email-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #f9f9f9;
+    transition: border 0.3s;
+  }
+  
+  .email-form input:focus,
+  .email-form textarea:focus {
+    border-color: #007bff;
+    outline: none;
+    background-color: #fff;
+  }
+  
+  .email-form textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+  
+  .email-form button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 10px;
+    transition: background 0.3s ease;
+  }
+  
+  .email-form button:hover {
+    background-color: #0056b3;
+  }
+  
+  .status-message {
+    margin-top: 15px;
+    color: green;
+    font-weight: 500;
+    text-align: center;
+  }
+  
+`;

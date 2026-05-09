@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import "../assets/css/workspaceTaskForm.css"; 
 import useFetch from "../../hooks/UseFetch";
 import { useLocation } from "react-router-dom";
+import styled from 'styled-components';
 
 function WorkspaceTaskForm() { 
      const location=useLocation();
   const {workspaceId}=location.state;
-  const {data:workspace,loading:loadingWorkspace,error:errorWorkspace}=useFetch(`/api/OneWorkspace/${workspaceId}`);
-  const { data: employees, loading: loading1, error: error1 } = useFetch("/api/allUsers");
+  const {data:workspace,loading:loadingWorkspace,error:errorWorkspace}=useFetch(`http://localhost:8000/api/OneWorkspace/${workspaceId}`);
+  const { data: employees, loading: loading1, error: error1 } = useFetch("http://localhost:8000/api/allUsers");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -147,3 +148,73 @@ function WorkspaceTaskForm() {
 }
 
 export default WorkspaceTaskForm;
+
+
+const WorkspaceTaskFormContainer = styled.div`
+  /* TaskForm.css */
+
+.task-form {
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .form-title {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group label {
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #555;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+  }
+  
+  .full-width {
+    grid-column: span 2;
+  }
+  
+  .submit-btn {
+    margin-top: 30px;
+    width: 100%;
+    padding: 12px;
+    background-color: #3498db;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .submit-btn:hover {
+    background-color: #2980b9;
+  }
+  
+
+`;

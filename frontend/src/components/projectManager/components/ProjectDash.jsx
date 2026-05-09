@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import '../assets/css/projectDash.css';
 import { useNavigate,useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import styled from 'styled-components';
 
 
 function ProjectDash() {  
@@ -29,7 +30,7 @@ function ProjectDash() {
         // Fetch project details
         const fetchProjectData = async () => {
           try {
-            const response = await fetch(`/api/projectShow/${selectedProjectId}`);
+            const response = await fetch(`http://localhost:8000/api/projectShow/${selectedProjectId}`);
             if (!response.ok) throw new Error('Failed to fetch project data');
             const data = await response.json();
             console.log(data);
@@ -44,7 +45,7 @@ function ProjectDash() {
         // Fetch workspaces
         const fetchWorkspaceData = async () => {
             try {
-              const response = await fetch(`/api/workspaceExtract/${selectedProjectId}`);
+              const response = await fetch(`http://localhost:8000/api/workspaceExtract/${selectedProjectId}`);
               if (!response.ok) throw new Error('Failed to fetch workspaces');
               const data = await response.json();
               console.log(data); // Check that data.data contains the array
@@ -113,3 +114,145 @@ function ProjectDash() {
 }
 
 export default ProjectDash;
+
+
+const ProjectDashContainer = styled.div`
+  
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.project-dash-wrapper {
+    background-color: #f4f5f7;
+    font-family: 'Baloo 2', cursive;
+    color: #333;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.project-dash-wrapper h1 {
+    font-size: 3rem;
+    text-align: center;
+    color: #10b981;
+    margin: 40px 0 30px 0;
+}
+
+#createWorkspace {
+    background-color: #10b981;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    padding: 10px 20px;
+    border-radius: 30px;
+    border: none;
+    cursor: pointer;
+    position: fixed;
+    right: 50px;
+    top: 50px;
+    transition: background-color 0.3s ease;
+}
+
+#createWorkspace:hover {
+    background-color: #22c55e;
+}
+
+.projectIntro {
+    width: 80%;
+    max-width: 900px;
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin: 0 auto 40px auto;
+}
+
+.projectIntro h2 {
+    font-size: 2.5rem;
+    color: #2d3748;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.details {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.details span {
+    font-weight: bold;
+    color: #2d3748;
+}
+
+.details p {
+    margin: 0;
+    color: #555;
+}
+
+.projectDashWorkspaceIndex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: center;
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 10px 20px;
+}
+
+.ProjectWorkspaceData {
+    background-color: #1e293b;
+    border-radius: 15px;
+    width: 280px;
+    padding: 20px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ProjectWorkspaceData:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 6px 12px rgba(0, 255, 170, 0.3);
+}
+
+.ProjectWorkspaceData ul {
+    list-style: none;
+    padding: 0;
+}
+
+.ProjectWorkspaceData ul li {
+    margin: 10px 0;
+    font-size: 1.2rem;
+}
+
+.statusBtn {
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.statusBtn:hover {
+    background-color: #22c55e;
+}
+
+@media (max-width: 768px) {
+    .projectDashWorkspaceIndex {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .ProjectWorkspaceData {
+        width: 90%;
+    }
+}
+
+`;

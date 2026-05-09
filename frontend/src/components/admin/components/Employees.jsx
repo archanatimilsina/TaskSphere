@@ -3,6 +3,7 @@ import '../assets/css/employees.css';
 import useFetch from '../../hooks/UseFetch';
 import usePost from '../../hooks/usePost';
 import useDelete from '../../hooks/useDelete';
+import styled from 'styled-components';
 
 function Employees()
 {
@@ -31,7 +32,7 @@ const [confirmDelete,setConfirmDelete]=useState(false);
     setShowDeleteModal(true);
   };
   const ConfirmDelete = async () => {
-    const result = await DeleteData(`/api/deleteUserData/${selectedAppId}`);
+    const result = await DeleteData(`http://localhost:8000/api/deleteUserData/${selectedAppId}`);
     console.log(result);
     if (result?.status === true) {
       alert("Application Rejected");
@@ -149,3 +150,167 @@ data?.data?.length>0 && data.data.map((Employee,index)=>
     )
 }
 export default Employees;
+
+const EmployeesContainer = styled.div`
+  /* Global Reset */
+* {
+    margin: 0;
+    box-sizing: border-box;
+    padding: 0;
+    font-family: 'Baloo 2', sans-serif;
+}
+
+body {
+    background-color: #1e293b;
+}
+.EmployeeWrap
+{
+    width: 100%;
+    height: 100%;
+
+}
+/* Heading */
+#Employeeheading {
+    color: black;
+    font-size: 4rem;
+    text-align: center;
+    margin: 50px 0 30px;
+}
+
+/* Employee Card */
+.employeeRow {
+    background-color: white;
+    border-radius: 20px;
+    width: 98% !important;
+    margin: auto;
+    height: 100px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: 0.2s;
+}
+.employeeRow:hover {
+    transform: scale(1.01);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+.employeeRow ul {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 100%;
+    padding: 30px;
+}
+.employeeRow ul li {
+    list-style: none;
+    font-size: 1.3rem;
+    color: #1e293b;
+}
+
+/* Employee Buttons */
+.employeeResponse {
+    display: flex;
+    gap: 10px;
+}
+.employeeResponse button {
+    width: 130px;
+    height: 50px;
+    border-radius: 10px;
+    border: none;
+    color: white;
+    font-size: 18px;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.78);
+    cursor: pointer;
+}
+.employeeEdit {
+    background-color: green;
+}
+.employeeEdit:hover {
+    background-color: rgb(148, 212, 148);
+}
+.employeeRemove {
+    background-color: red;
+}
+.employeeRemove:hover {
+    background-color: rgb(222, 123, 123);
+}
+
+/* Modal Styling (works without Bootstrap) */
+.EmployeeModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+.EmployeeModal-content {
+    background-color: #fff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    padding: 30px;
+    position: relative;
+}
+.close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Modal Form */
+.EmployeeModal-content h3 {
+    margin-bottom: 20px;
+}
+.EmployeeModal-content label {
+    display: block;
+    margin: 10px 0 5px;
+}
+.EmployeeModal-content input,
+.EmployeeModal-content select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+.employeeSubmitBtn {
+    width: 100%;
+    padding: 12px;
+    background-color: #1e293b;
+    color: white;
+    border: 1px solid black;
+    border-radius: 8px;
+    font-size: 18px;
+}
+
+/* Modal Footer Button */
+.EmployeeModal-footer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+.EmployeeModal-footer button {
+    padding: 10px 25px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+.EmployeeModal-footer .deleteBtn {
+    background-color: red;
+    color: white;
+}
+.EmployeeModal-footer .cancelBtn {
+    background-color: #ccc;
+    color: black;
+}
+
+
+`;

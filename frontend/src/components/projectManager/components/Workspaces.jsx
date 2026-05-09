@@ -2,9 +2,10 @@ import { useNavigate } from "react-router-dom";
 import useFetch from "../../hooks/UseFetch";
 import '../assets/css/workspaces.css';
 import { useState } from "react";
+import styled from 'styled-components';
 
 function Workspaces() {
-    const { data, loading, error } = useFetch("/api/workspaceIndex");
+    const { data, loading, error } = useFetch("http://localhost:8000/api/workspaceIndex");
     const [workspaceId, setWorkspaceId] = useState(null);
     const navigate = useNavigate();
 
@@ -33,3 +34,84 @@ function Workspaces() {
 }
 
 export default Workspaces;
+const WorkspacesContainer = styled.div`
+  
+* {
+  margin: 0;
+  box-sizing: border-box;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #f1f5f9;
+}
+
+#workspaceHeading {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 40px 0 20px;
+  color: #0f172a;
+}
+
+.workspaceContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.workspaceBox {
+  background-color: #1e293b;
+  border-radius: 20px;
+  padding: 25px;
+  height: 150px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.workspaceBox:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(16, 185, 129, 0.3);
+}
+
+.workspaceList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.workspaceName {
+  font-size: 1.1rem;
+  margin: 6px 0;
+  color: #e2e8f0;
+}
+
+.workspaceOpenBtn {
+  width: 80px;
+  height: 35px;
+  color: white;
+  background-color: #10b981;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.workspaceOpenBtn:hover {
+  background-color: #22c55e;
+}
+
+`;

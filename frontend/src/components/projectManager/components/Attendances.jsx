@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../assets/css/Attendance.css';
+import styled from 'styled-components';
 
 const Attendance = () => {
   const [showAddModal, setShowAddModal] = useState(true);
@@ -187,3 +188,126 @@ const Attendance = () => {
 };
 
 export default Attendance;
+const AttendanceContainer = styled.div`
+  .AttendanceContainer {
+    padding: 2rem;
+    max-width: 800px;
+    margin: auto;
+    font-family: 'Baloo 2', sans-serif;
+  }
+  
+  .attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  
+  .attendance-table th,
+  .attendance-table td {
+    border: 1px solid #ddd;
+    padding: 0.8rem;
+    text-align: left;
+  }
+  
+  .attendance-table th {
+    background-color: #f5f5f5;
+    color: black;
+   
+    
+  }
+  
+  .status.present {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .status.absent {
+    color: red;
+    font-weight: bold;
+  }
+  
+  .btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  
+  .btn.primary {
+    background-color: #1e293b;
+    color: rgb(255, 255, 255);
+  }
+  
+  .btn.edit {
+    background-color: #2196F3;
+    color: white;
+    margin-right: 10px;
+  }
+  
+  .btn.delete {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  /* Modal Styles */
+  .modal {
+    position: fixed;
+    z-index: 999;
+    padding-top: 60px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+  }
+  
+  .modal-content {
+    background-color: white;
+    margin: auto;
+    padding: 2rem;
+    border: 1px solid #888;
+    width: 400px;
+    border-radius: 8px;
+  }
+  
+  .modal-content h3 {
+    margin-bottom: 1rem;
+  }
+  
+  .modal-content label {
+    display: block;
+    margin: 0.5rem 0 0.3rem;
+  }
+  
+  .modal-content input,
+  .modal-content select {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .radio-group {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .answerBtns
+  {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+`;

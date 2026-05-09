@@ -2,10 +2,11 @@ import useFetch from "../../hooks/UseFetch";
 import '../assets/css/projects.css';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import styled from 'styled-components';
 
 
 function Projects() {
-    const {data, loading, error } = useFetch("/api/projectIndex");
+    const {data, loading, error } = useFetch("http://localhost:8000/api/projectIndex");
     const [selectedProjectId, setSelectedProjectId] = useState(null);
     const navigate = useNavigate(); 
 
@@ -47,3 +48,85 @@ function Projects() {
 }
 
 export default Projects;
+const ProjectsContainer = styled.div`
+  * {
+    margin: 0;
+    box-sizing: border-box;
+    padding: 0;
+    font-family: 'Baloo 2', sans-serif;
+}
+body {
+    background-color: #1e293b;
+}
+
+#projectHeading {
+    color: black;
+    font-size: 4rem;
+    text-align: center;
+    margin-top: 50px;
+    margin-bottom: 30px;
+}
+
+.projectCard {
+    background-color: white;
+    border-radius: 20px;
+    width: 80%;
+    margin: 30px auto;
+    height: 100px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.projectCard:hover {
+    transform: scale(1.01);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.projectCard ul {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 30px;
+    align-items: center;
+}
+.projectCard ul li {
+    list-style: none;
+    font-size: 1.3rem;
+    color: #1e293b;
+}
+
+.projectBtn {
+    width: 100px;
+    height: 40px;
+    color: white;
+    background-color: green;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+.projectBtn:hover {
+    background-color: #4ade80; /* light green */
+}
+.topBar {
+    display: flex;
+    justify-content: flex-end;
+    width: 80%;
+    margin: 0 auto;
+    margin-bottom: 10px;
+}
+
+.createProject
+{
+    width: 150px;
+    height: 50px;
+    border: apx solid black;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+position: absolute;
+right: 30px;
+background-color: green;
+color: white;
+}
+
+`;

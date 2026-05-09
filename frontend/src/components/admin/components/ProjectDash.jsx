@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import '../assets/css/projectDash.css';
 import { useNavigate,useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import styled from 'styled-components';
 
 
 function ProjectDash() {  
@@ -24,7 +25,7 @@ function ProjectDash() {
         // Fetch project details
         const fetchProjectData = async () => {
           try {
-            const response = await fetch(`/api/projectShow/${selectedProjectId}`);
+            const response = await fetch(`http://localhost:8000/api/projectShow/${selectedProjectId}`);
             if (!response.ok) throw new Error('Failed to fetch project data');
             const data = await response.json();
             console.log(data);
@@ -108,3 +109,57 @@ function ProjectDash() {
 }
 
 export default ProjectDash;
+
+
+const ProjectDashContainer = styled.div`
+  
+
+
+  .project-detail {
+    padding: 20px;
+    max-width: 700px;
+    margin: auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .project-title {
+    font-size: 28px;
+    color: #1e293b;
+    margin-bottom: 10px;
+  }
+
+  .project-description {
+    color: #475569;
+    margin-bottom: 20px;
+  }
+
+  .detail-row {
+    margin-bottom: 10px;
+    color: #334155;
+  }
+
+  .status-badge {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .status-completed {
+    background: #4ade80;
+    color: #065f46;
+  }
+
+  .status-on-hold {
+    background: #facc15;
+    color: #78350f;
+  }
+
+  .status-not-started {
+    background: #f87171;
+    color: #7f1d1d;
+  }
+
+`;

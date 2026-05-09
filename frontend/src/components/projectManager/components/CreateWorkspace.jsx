@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import useFetch from "../../hooks/UseFetch";
 import usePost from "../../hooks/usePost";
+import styled from 'styled-components';
 
 const CreateWorkspace = () => {
     const { postData } = usePost();
   const location= useLocation();
   const projectId=location.state;
-   const { data: employees, loading: loading1, error: error1 } = useFetch("/api/allUsers");
+   const { data: employees, loading: loading1, error: error1 } = useFetch("http://localhost:8000/api/allUsers");
   const [formData, setWorkspace] = useState({
     name: "",
     description: "",
@@ -142,3 +143,8 @@ const buttonStyle = {
 };
 
 export default CreateWorkspace;
+
+const CreateWorkspaceContainer = styled.div`
+  
+
+`;

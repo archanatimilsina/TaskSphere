@@ -1,6 +1,7 @@
 import { useState } from "react";
 import usePost from "../../hooks/usePost";
-import "../assets/css/CommentForm.css"; // You can design this as needed
+import "../assets/css/CommentForm.css"; 
+import styled from 'styled-components';
 
 export default function CommentForm() {
   const { postData } = usePost();
@@ -9,7 +10,7 @@ export default function CommentForm() {
     username: "",
     role: "",
     comment: "",
-    profile: "" // Optional: Could be a file or URL
+    profile: "" 
   });
 
   const handleChange = (e) => {
@@ -24,10 +25,10 @@ export default function CommentForm() {
     e.preventDefault();
     const payload = {
       ...formData,
-      created_at: new Date().toISOString(), // auto add timestamp
+      created_at: new Date().toISOString(), 
     };
 
-    const result = await postData("/api/postComment", payload);
+    const result = await postData("http://localhost:8000/api/postComment", payload);
     if (result?.status) {
       alert("Comment posted successfully");
       setFormData({ username: "", role: "", comment: "", profile: "" });
@@ -35,7 +36,8 @@ export default function CommentForm() {
   };
 
   return (
-    <div className="form-container">
+    <CommentFormContainer>
+ <div className="form-container">
       <h2 className="form-title">Post a Comment</h2>
       <form onSubmit={handleSubmit} className="form-content">
 
@@ -63,7 +65,6 @@ export default function CommentForm() {
           />
         </div>
 
-        {/* Optional: Profile image URL or input */}
         <div className="form-group">
           <label className="form-label">Profile Image URL</label>
           <input
@@ -95,5 +96,12 @@ export default function CommentForm() {
         </div>
       </form>
     </div>
+
+
+    </CommentFormContainer>
+   
   );
 }
+const CommentFormContainer = styled.div`
+
+`;

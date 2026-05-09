@@ -1,6 +1,7 @@
 import { useState } from "react";
 import usePost from "../../hooks/usePost";
 import "../assets/css/CommentForm.css"; // You can design this as needed
+import styled from 'styled-components';
 
 export default function CommentForm() {
   const { postData } = usePost();
@@ -27,7 +28,7 @@ export default function CommentForm() {
       created_at: new Date().toISOString(), // auto add timestamp
     };
 
-    const result = await postData("/api/postComment", payload);
+    const result = await postData("http://localhost:8000/api/postComment", payload);
     if (result?.status) {
       alert("Comment posted successfully");
       setFormData({ username: "", role: "", comment: "", profile: "" });
@@ -97,3 +98,7 @@ export default function CommentForm() {
     </div>
   );
 }
+const CommentFormContainer = styled.div`
+  
+
+`;

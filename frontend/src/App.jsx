@@ -1,122 +1,94 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+// import AdminApp from '../src/components/admin/AdminApp';
+// import UserApp from '../src/components/user/UserApp';
+// import ProjectManagerApp from '../src/components/projectManager/ProjectManagerApp'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-function App() {
-  const [count, setCount] = useState(0)
+import LayoutAdmin from './components/admin/components/LayoutAdmin';
+import LayoutProjectManager from './components/projectManager/components/LayoutProjectManager';
+import LayoutUser from './components/user/components/LayoutUser';
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+// import Attendance from './components/projectManager/components/Attendances';
+// import Attendances from './components/admin/components/Attendances';
 
-      <div className="ticks"></div>
+import AdminDash from './components/admin/components/AdminDash';
+import ProjectManagerDash from './components/projectManager/components/ProjectManagerDash';
+import UserDash from './components/user/components/UserDash';
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+import ProjectDash from './components/user/components/ProjectDash';
+import Projects from './components/user/components/Projects';
+import WorkspaceDash from './components/user/components/WorkspaceDash';
+import UserWorkspaceTask from './components/user/components/WorkspaceTask';
+import Tasks from './components/user/components/Tasks';
+import UserWorkspaces from './components/user/components/Workspaces';
+import Profile from './components/user/components/Profile';
+import UserLogout from './components/user/components/UserLogout';
+import Comment from './components/user/components/Comment';
+import CommentForm  from './components/user/components/createComments';
+import Notice from './components/user/components/Notice';
+import NoticeDash from './components/user/components/NoticeDash';
+
+function App()
+{
+return(
+<BrowserRouter>
+
+<Routes>
+<Route path="/admin" element={<LayoutAdmin />}>
+          <Route index element={<AdminDash />} />
+           {/* <Route path="attendances" element={<Attendances />} />
+          <Route path="comments" element={<Comment />} />
+          <Route path="createNotices" element={<CreateNotices />} />
+          <Route path="notices" element={<Notice />} />
+          <Route path="employees" element={<Employees />} />
+          <Route path="registerApplication" element={<RegisterApplication />} />
+          <Route path="ProjectDash" element={<ProjectDash />} />
+          <Route path="sendEmail" element={<SendEmail />} />
+          <Route path="noticeDash" element={<NoticeDash />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="adminDash" element={<AdminDash />} />
+          <Route path="adminLogout" element={<AdminLogout />} /> */}
+        </Route>
+
+<Route path="/pm" element={<LayoutProjectManager />}>
+          <Route index element={<ProjectManagerDash />} />
+          {/* <Route path="projects" element={<Projects />} />
+      <Route path="workspaces" element={<Workspaces />} />
+      <Route path="tasks" element={<Tasks />} />
+      <Route path="attendances" element={<Attendances />} />
+      <Route path="projectCreateForm" element={<ProjectCreateForm />} />
+      <Route path="workspaceCreateForm" element={<CreateWorkspace />} />
+      <Route path="TaskCreateForm" element={<TaskForm />} />
+      <Route path="workspaceTaskForm" element={<WorkspaceTaskForm />} />
+      <Route path="comments" element={<Comment />} />
+      <Route path="members" element={<Members />} />
+      <Route path="workspaceDash" element={<WorkspaceDash />} />
+      <Route path="profile" element={<Profile />} />
+      <Route path="projectManagerDash" element={<ProjectManagerDash />} />
+      <Route path="notices" element={<Notice />} />
+      <Route path="noticeDash" element={<NoticeDash />} />
+<Route path="pmLogout" element={<PmLogout />} /> */}
+        </Route>
+
+
+<Route path="/user" element={<LayoutUser />}>
+          <Route index element={<UserDash />} />
+         <Route path="projects" element={<Projects />} />
+      <Route path="workspaces" element={<Workspaces />} />
+      <Route path="tasks" element={<Tasks />} />
+      <Route path="attendances" element={<Attendances />} />
+      <Route path="userdash" element={<UserDash />} />
+      <Route path="projectDash" element={<ProjectDash />} />
+      <Route path="comments" element={<Comment />} />
+      <Route path="workspaceDash" element={<WorkspaceDash />} />
+     <Route path="profile" element={<Profile />} />
+     <Route path="userDash" element={<UserDash />} />
+     <Route path="notices" element={<Notice />} />
+     <Route path="noticeDash" element={<NoticeDash />} />
+     <Route path="UserLogout" element={<UserLogout />} /> 
+        </Route>
+</Routes>
+</BrowserRouter>
+);
 }
-
-export default App
+export default App;
