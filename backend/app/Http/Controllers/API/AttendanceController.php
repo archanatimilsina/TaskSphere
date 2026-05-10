@@ -13,11 +13,11 @@ class AttendanceController extends BaseController
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-    $cafes= User::all();
-    return $this->sendResponse($cafes,"All the cafes");
-    }
+    // public function index()
+    // {
+    // $cafes= User::all();
+    // return $this->sendResponse($cafes,"All the cafes");
+    // }
 
     /**
      * Store a newly created resource in storage.

@@ -63,8 +63,6 @@ Route::get('/workspaceView' ,[WorkspaceController::class,'workspaceView'])->name
 Route::get('/projectView' ,[ProjectController::class,'projectView'])->name('projectView');
 Route::get('/taskView' ,[TaskController::class,'taskView'])->name('taskView');
 
-
-
 Route::get('/workspaceExtract/{id}' , [ProjectController::class,'workspaceExtract'])->name('workspaceExtract');
 
 
