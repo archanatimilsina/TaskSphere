@@ -1,163 +1,226 @@
 import React from "react";
-import '../assets/css/comment.css'; 
-import useFetch from "../../hooks/UseFetch";
 import styled from 'styled-components';
+import useFetch from "../../../hooks/useFetch";
 
+function PmComment({ id }) {
+  // Using the passed workspace/project ID for fetching discussions
+  const { data: commentsData, loading, error } = useFetch(`/api/projectIndex/${id || 7}`);
 
-function Comment({id}) {
-        console.log(id);  
-        const { data, loading, error } = useFetch("/api/projectIndex/7");
+  if (loading) return <StatusBox>Loading discussions...</StatusBox>;
+  if (error) return <StatusBox className="error">Error loading forum: {error}</StatusBox>;
+
+  const comments = commentsData?.data || [];
+
   return (
-    <>
-      <div className="commentTopBar">
-        <h1>Discussion Forum</h1>
-        <button className="postComment">Post Comment</button>
+    <CommentContainer>
+      <div className="forum-header">
+        <div className="title-area">
+          <h1>Discussion Forum</h1>
+          <p>Collaborate with your team on this workspace</p>
+        </div>
+        <button className="post-comment-btn">
+          <i className="fas fa-plus"></i> New Post
+        </button>
       </div>
 
-   
-      <div className="comment">
-        <div className="commentHead">
-          <img src="https://i.pravatar.cc/50" alt="User" className="profile-img" />
-          <div className="user-info">
-            <div className="user-name">Sita Sharma</div>
-            <div className="user-role">Project Manager</div>
+      <div className="comments-feed">
+        {comments.length > 0 ? (
+          comments.map((comment, index) => (
+            <div className="comment-card" key={comment.id || index}>
+              <div className="comment-head">
+                <img 
+                  src={comment.user_image || `https://i.pravatar.cc/150?u=${comment.user_name}`} 
+                  alt="User" 
+                  className="profile-img" 
+                />
+                <div className="user-meta">
+                  <span className="user-name">{comment.user_name || "Team Member"}</span>
+                  <span className="user-role">{comment.user_role || "Contributor"}</span>
+                </div>
+                <div className="comment-time">
+                  {comment.created_at || "Just now"}
+                </div>
+              </div>
+
+              <div className="comment-body">
+                <p>{comment.content || "No content provided."}</p>
+              </div>
+              
+              <div className="comment-footer">
+                <button className="footer-action"><i className="far fa-thumbs-up"></i> Like</button>
+                <button className="footer-action"><i className="far fa-comment"></i> Reply</button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="empty-forum">
+            <i className="far fa-comments"></i>
+            <p>No discussions yet. Be the first to start the conversation!</p>
           </div>
-          <div className="comment-time">April 26, 2025 · 3:00 PM</div>
-        </div>
-
-        <div className="commentBody">
-          <p>
-            This workspace design is amazing! I suggest we also add role-based permissions
-            so team leads can monitor task progress without editing tasks.
-          </p>
-          <p>
-            Also, maybe include a section for attaching documents within the comment thread
-            itself. That would make it super handy for everyone to collaborate.
-          </p>
-        </div>
+        )}
       </div>
-
- 
-      <div className="comment">
-        <div className="commentHead">
-          <img src="https://i.pravatar.cc/50" alt="User" className="profile-img" />
-          <div className="user-info">
-            <div className="user-name">Sita Sharma</div>
-            <div className="user-role">Project Manager</div>
-          </div>
-          <div className="comment-time">April 26, 2025 · 3:00 PM</div>
-        </div>
-
-        <div className="commentBody">
-          <p>
-            This workspace design is amazing! I suggest we also add role-based permissions
-            so team leads can monitor task progress without editing tasks.
-          </p>
-          <p>
-            Here's a second paragraph to test scroll behavior. Keep adding content here
-            and the box will scroll only when it exceeds 300px in height. 😊
-          </p>
-        </div>
-      </div>
-    </>
+    </CommentContainer>
   );
 }
 
-export default Comment;
+export default PmComment;
+
+const StatusBox = styled.div`
+  text-align: center;
+  padding: 50px;
+  font-family: 'Baloo 2', cursive;
+  color: #64748b;
+  &.error { color: #ef4444; }
+`;
 
 const CommentContainer = styled.div`
-  
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Baloo 2', sans-serif;
-  }
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Baloo 2', cursive;
 
-  body {
-    background-color: #f1f1f1;
-    padding: 2rem;
-  }
-h1{
-  text-align: center;
-  margin-bottom: 30px;
-  display: inline-block;
-  border-bottom: 1px solid gray;
- 
-}
-.commentTopBar
-{
-position: relative;
-}
-
-  .comment {
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    max-width: 98%;
-    margin: auto;
-    padding: 1rem;
-    margin-bottom: 70px;
-  }
-
-  .commentHead {
+  .forum-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 1rem;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 0.75rem;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f1f5f9;
+
+    .title-area {
+      h1 {
+        font-size: 2.2rem;
+        color: #0f172a;
+        margin: 0;
+      }
+      p {
+        color: #94a3b8;
+        margin: 5px 0 0;
+      }
+    }
+
+    .post-comment-btn {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      font-family: inherit;
+
+      &:hover {
+        background: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+      }
+    }
   }
 
-  .profile-img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
+  .comment-card {
+    background: white;
+    border-radius: 18px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
+    transition: transform 0.2s;
+
+    &:hover {
+      border-color: #e2e8f0;
+    }
+
+    .comment-head {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+
+      .profile-img {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        object-fit: cover;
+      }
+
+      .user-meta {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+
+        .user-name {
+          font-weight: 800;
+          color: #1e293b;
+          font-size: 1.1rem;
+        }
+
+        .user-role {
+          font-size: 0.85rem;
+          color: #3b82f6;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+      }
+
+      .comment-time {
+        font-size: 0.85rem;
+        color: #94a3b8;
+      }
+    }
+
+    .comment-body {
+      color: #475569;
+      line-height: 1.7;
+      font-size: 1.1rem;
+      padding-left: 63px; /* Align with text, not the image */
+      max-height: 400px;
+      overflow-y: auto;
+
+      p { margin: 0; white-space: pre-wrap; }
+
+      &::-webkit-scrollbar { width: 5px; }
+      &::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    }
+
+    .comment-footer {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #f8fafc;
+      padding-left: 63px;
+      display: flex;
+      gap: 20px;
+
+      .footer-action {
+        background: none;
+        border: none;
+        color: #64748b;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+
+        &:hover { color: #3b82f6; }
+      }
+    }
   }
 
-  .user-info {
-    flex-grow: 1;
-  }
+  .empty-forum {
+    text-align: center;
+    padding: 60px;
+    background: #f8fafc;
+    border-radius: 24px;
+    border: 2px dashed #e2e8f0;
+    color: #94a3b8;
 
-  .user-name {
-    font-size: 1.1rem;
-    font-weight: bold;
+    i { font-size: 3rem; margin-bottom: 15px; }
+    p { font-size: 1.2rem; }
   }
-
-  .user-role {
-    font-size: 0.9rem;
-    color: #666;
-  }
-
-  .comment-time {
-    font-size: 0.85rem;
-    color: #aaa;
-  }
-
-  .commentBody {
-    margin-top: 1rem;
-    max-height: 300px;
-    overflow-y: auto;
-    padding-right: 0.5rem;
-  }
-
-  .commentBody::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .commentBody::-webkit-scrollbar-thumb {
-    background-color: #ccc;
-    border-radius: 10px;
-  }
-.postComment
-{
-  width: 150px;
-  height: 50px;
-  background-color: lightblue;
-  font-size: 1.2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  position: absolute;
-  right: 70px;
-}
 `;

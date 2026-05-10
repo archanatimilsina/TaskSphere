@@ -1,52 +1,71 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import useFetch from "../../hooks/UseFetch";
+import useFetch from "../../../hooks/useFetch";
 
-function Projects() {
-    const { data, loading, error } = useFetch("/api/projectIndex");
-    const [selectedProjectId, setSelectedProjectId] = useState(null);
+export default function UserProjects() {
+    const { data, loading, error } = useFetch("http://localhost:8000/api/projectIndex");
     const navigate = useNavigate();
 
     const handleOpenProject = (id) => {
-        setSelectedProjectId(id);
         navigate('/projectDash', { state: { selectedProjectId: id } });
     };
 
-    if (loading) return <LoadingText>Loading projects...</LoadingText>;
-    if (error) return <ErrorText>Error loading projects: {error}</ErrorText>;
+    if (loading) return <StatusWrapper>Loading project portfolios...</StatusWrapper>;
+    if (error) return <StatusWrapper className="error">Synchronization Error: {error}</StatusWrapper>;
 
     return (
         <ProjectsContainer>
-            <h1 id="projectHeading">Projects</h1>
-            
-            <div className="topBar">
-                <i className="fa-solid fa-filter btn btn-link" id="filter" title="Filter Projects"></i>
-            </div>
+            <header className="page-header">
+                <div className="header-content">
+                    <h1>Projects</h1>
+                    <p>Manage and track the progress of your active initiatives.</p>
+                </div>
+                <div className="header-tools">
+                    <button className="tool-btn" title="Search Projects">
+                        <i className="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                    <button className="tool-btn" title="Filter List">
+                        <i className="fa-solid fa-arrow-down-wide-short"></i>
+                    </button>
+                </div>
+            </header>
 
-            <div className="projectList">
+            <div className="project-grid">
                 {data?.data?.length > 0 ? (
                     data.data.map((project, index) => (
-                        <div key={project.id || index} className="projectCard">
-                            <ul>
-                                <li className="projectIndex">{index + 1}</li>
-                                <li className="projectName">{project.name}</li>
-                                <li className="projectStatus">
-                                    <span className={`statusBadge ${project.status?.toLowerCase().replace(/\s+/g, '-')}`}>
-                                        {project.status}
-                                    </span>
-                                </li>
-                                <li>
-                                    <button className="projectBtn" onClick={() => handleOpenProject(project.id)}>
-                                        Open
-                                    </button>
-                                </li>
-                            </ul>
+                        <div key={project.id || index} className="project-row">
+                            <div className="project-meta">
+                                <span className="project-number">{(index + 1).toString().padStart(2, '0')}</span>
+                                <div className="name-box">
+                                    <h3 className="project-name">{project.name}</h3>
+                                    <span className="project-type">External Project</span>
+                                </div>
+                            </div>
+                            
+                            <div className="project-status">
+                                <span className={`status-pill ${project.status?.toLowerCase().replace(/\s+/g, '-')}`}>
+                                    <i className="fa-solid fa-circle"></i> {project.status}
+                                </span>
+                            </div>
+
+                            <div className="project-actions">
+                                <button className="launch-btn" onClick={() => handleOpenProject(project.id)}>
+                                    View Details <i className="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
                         </div>
                     ))
                 ) : (
-                    <div className="noData">
-                        <p>No projects found in your workspace.</p>
+                    <div className="empty-state">
+                        <div className="empty-icon">
+                            <i className="fa-solid fa-folder-open"></i>
+                        </div>
+                        <h3>No Projects Found</h3>
+                        <p>It looks like you haven't been assigned to any projects yet.</p>
+                        <button className="refresh-btn" onClick={() => window.location.reload()}>
+                            Refresh Dashboard
+                        </button>
                     </div>
                 )}
             </div>
@@ -54,143 +73,195 @@ function Projects() {
     );
 }
 
-const LoadingText = styled.div`
+const StatusWrapper = styled.div`
     text-align: center;
-    padding: 50px;
-    font-size: 1.5rem;
-    color: #64748b;
-`;
-
-const ErrorText = styled.div`
-    text-align: center;
-    padding: 50px;
+    padding: 100px;
+    font-family: 'Baloo 2', cursive;
     font-size: 1.2rem;
-    color: #ef4444;
+    color: #64748b;
+    &.error { color: #ef4444; }
 `;
 
 const ProjectsContainer = styled.div`
-    padding: 20px;
-    min-height: 100vh;
-    font-family: 'Baloo 2', sans-serif;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: 'Baloo 2', cursive;
 
-    #projectHeading {
-        color: #1e293b;
-        font-size: 3rem;
-        text-align: center;
-        margin: 40px 0;
-        font-weight: 700;
-    }
-
-    .topBar {
+    .page-header {
         display: flex;
-        justify-content: flex-end;
-        width: 85%;
-        max-width: 1200px;
-        margin: 0 auto 20px auto;
-    }
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 50px;
 
-    #filter {
-        font-size: 1.5rem;
-        color: #64748b;
-        cursor: pointer;
-        transition: color 0.3s;
-        &:hover { color: #1e293b; }
-    }
-
-    .projectList {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 20px;
-    }
-
-    .projectCard {
-        background-color: white;
-        border-radius: 16px;
-        width: 85%;
-        max-width: 1200px;
-        height: auto;
-        min-height: 90px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
-        
-        &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        h1 {
+            font-size: 3rem;
+            color: #1e293b;
+            margin: 0;
+            line-height: 1;
         }
 
-        ul {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 40px;
-            list-style: none;
-            margin: 0;
+        p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
 
-            @media (max-width: 600px) {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-                padding: 20px;
+        .header-tools {
+            display: flex;
+            gap: 12px;
+        }
+
+        .tool-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #64748b;
+            cursor: pointer;
+            transition: 0.2s;
+            &:hover {
+                color: #10b981;
+                border-color: #10b981;
+                background: #f0fdf4;
             }
         }
     }
 
-    .projectIndex {
-        font-weight: 700;
-        color: #94a3b8;
-        width: 40px;
+    .project-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
     }
 
-    .projectName {
-        flex: 1;
-        font-weight: 600;
-        font-size: 1.4rem;
-        color: #1e293b;
-        margin-left: 20px;
-    }
-
-    .statusBadge {
-        padding: 5px 15px;
+    .project-row {
+        background: white;
         border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        background: #f1f5f9;
-        color: #475569;
-        
-        &.completed { background: #dcfce7; color: #166534; }
-        &.in-progress { background: #dbeafe; color: #1e40af; }
-        &.pending { background: #fef9c3; color: #854d0e; }
-    }
-
-    .projectBtn {
-        width: 110px;
-        height: 42px;
-        color: white;
-        background-color: #10b981;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        font-size: 1rem;
-        font-weight: 600;
+        padding: 24px 35px;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        align-items: center;
+        border: 1px solid #f1f5f9;
         transition: all 0.3s ease;
-        margin-left: 20px;
 
         &:hover {
-            background-color: #059669;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            transform: scale(1.01);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            border-color: #10b981;
+        }
+
+        @media (max-width: 850px) {
+            grid-template-columns: 1fr;
+            gap: 20px;
+            text-align: center;
+            padding: 30px;
         }
     }
 
-    .noData {
+    .project-meta {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+
+        @media (max-width: 850px) { flex-direction: column; gap: 10px; }
+
+        .project-number {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #f1f5f9;
+            background: #f8fafc;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+        .project-name {
+            font-size: 1.4rem;
+            color: #1e293b;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .project-type {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        background: #f1f5f9;
+        color: #475569;
+
+        i { font-size: 0.5rem; }
+        
+        &.completed { background: #f0fdf4; color: #10b981; }
+        &.in-progress { background: #eff6ff; color: #3b82f6; }
+        &.pending { background: #fffbeb; color: #d97706; }
+    }
+
+    .launch-btn {
+        justify-self: end;
+        padding: 12px 24px;
         background: #f8fafc;
-        padding: 40px;
-        border-radius: 12px;
+        color: #10b981;
+        border: 2px solid #f1f5f9;
+        border-radius: 14px;
+        font-weight: 800;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: 0.2s;
+        font-family: inherit;
+
+        &:hover {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+            transform: translateX(5px);
+        }
+
+        @media (max-width: 850px) { justify-self: center; width: 100%; }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 40px;
+        background: white;
+        border-radius: 30px;
         border: 2px dashed #e2e8f0;
-        color: #94a3b8;
-        font-size: 1.2rem;
+
+        .empty-icon {
+            font-size: 4rem;
+            color: #f1f5f9;
+            margin-bottom: 20px;
+        }
+
+        h3 { font-size: 1.8rem; color: #64748b; margin: 0; }
+        p { color: #94a3b8; margin: 10px 0 30px; }
+
+        .refresh-btn {
+            background: #1e293b;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            &:hover { background: #0f172a; }
+        }
     }
 `;
-
-export default Projects;

@@ -4,137 +4,175 @@ import styled from 'styled-components';
 import Comment from "./Comment";
 import WorkspaceTask from "./WorkspaceTask";
 
-function WorkspaceDash() {
-    // Default to comment view
-    const [activeTab, setActiveTab] = useState("commentSpan");
+function UserWorkspaceDash() {
+    // Persistent state for switching between operational views
+    const [activeTab, setActiveTab] = useState("discussions");
     const location = useLocation();
     
-    // Safety check for location state
+    // Extract workspace identity from the routing state
     const workspaceId = location.state?.workspaceId;
 
+    // Safety fallback for direct URL access without state
     if (!workspaceId) {
-        return <ErrorState>No Workspace ID found. Please navigate from the workspace list.</ErrorState>;
+        return (
+            <ErrorState>
+                <div className="error-box">
+                    <i className="fa-solid fa-triangle-exclamation"></i>
+                    <h2>Session Lost</h2>
+                    <p>No Workspace ID detected. Please return to the dashboard and re-select your workspace.</p>
+                    <button onClick={() => window.history.back()}>Go Back</button>
+                </div>
+            </ErrorState>
+        );
     }
 
     return (
         <WorkspaceDashContainer>
-            <div className="headBar">
-                <span 
-                    className={activeTab === "commentSpan" ? "active" : ""} 
-                    onClick={() => setActiveTab("commentSpan")}
+            <nav className="navigation-tabs">
+                <button 
+                    className={activeTab === "discussions" ? "tab-btn active" : "tab-btn"} 
+                    onClick={() => setActiveTab("discussions")}
                 >
-                    <i className="fas fa-comments"></i> Discussions
-                </span>
-                <span 
-                    className={activeTab === "taskSpan" ? "active" : ""} 
-                    onClick={() => setActiveTab("taskSpan")}
+                    <i className="fa-solid fa-comment-dots"></i>
+                    <span>Team Discussions</span>
+                </button>
+                
+                <button 
+                    className={activeTab === "tasks" ? "tab-btn active" : "tab-btn"} 
+                    onClick={() => setActiveTab("tasks")}
                 >
-                    <i className="fas fa-tasks"></i> Project Tasks
-                </span>
-            </div>
+                    <i className="fa-solid fa-list-check"></i>
+                    <span>Operational Tasks</span>
+                </button>
+            </nav>
 
-            <div className="DashMain">
-                <div className="content-wrapper">
-                    {activeTab === "taskSpan" ? (
+            <main className="dashboard-viewport">
+                <div className="inner-scroll-container">
+                    {activeTab === "tasks" ? (
                         <WorkspaceTask id={workspaceId} />
                     ) : (
                         <Comment id={workspaceId} />
                     )}
                 </div>
-            </div>
+            </main>
         </WorkspaceDashContainer>
     );
 }
 
 const ErrorState = styled.div`
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    color: #ef4444;
-    font-weight: 600;
+    background: #f8fafc;
+    font-family: 'Baloo 2', cursive;
+
+    .error-box {
+        text-align: center;
+        background: white;
+        padding: 50px;
+        border-radius: 30px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+        
+        i { font-size: 4rem; color: #f59e0b; margin-bottom: 20px; }
+        h2 { color: #1e293b; margin: 0; font-size: 2rem; }
+        p { color: #94a3b8; max-width: 300px; margin: 15px auto; }
+        
+        button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            &:hover { background: #4338ca; transform: translateY(-2px); }
+        }
+    }
 `;
 
 const WorkspaceDashContainer = styled.div`
-  width: 100%;
   min-height: 100vh;
   background-color: #f8fafc;
-  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Baloo 2', cursive;
 
-  .headBar {
-    width: 100%;
-    max-width: 600px;
+  .navigation-tabs {
     display: flex;
-    flex-direction: row;
-    align-items: center;
     justify-content: center;
-    margin: 0 auto;
-    padding-top: 30px;
-    gap: 40px;
+    gap: 30px;
+    padding: 40px 20px 20px;
+    
+    @media (max-width: 600px) { gap: 10px; }
   }
 
-  .headBar span {
-    color: #64748b;
-    font-family: 'Baloo 2', cursive;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 8px 16px;
-    transition: all 0.3s ease;
+  .tab-btn {
+    background: transparent;
+    border: none;
+    padding: 12px 25px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    border-bottom: 3px solid transparent;
+    gap: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 15px;
+    font-family: inherit;
 
-    i {
-        font-size: 1rem;
-    }
+    i { font-size: 1.2rem; }
 
     &:hover {
       color: #4f46e5;
+      background: #eef2ff;
+    }
+
+    &.active {
+      color: #4f46e5;
+      background: #eef2ff;
+      box-shadow: inset 0 0 0 2px #c7d2fe;
     }
   }
 
-  .headBar span.active {
-    color: #4f46e5;
-    border-bottom: 3px solid #4f46e5;
-    font-weight: bold;
-  }
-
-  .DashMain {
+  .dashboard-viewport {
+    flex: 1;
     width: 95%;
-    max-width: 1200px;
-    margin: 40px auto 0;
+    max-width: 1300px;
+    margin: 20px auto 40px;
     background: white;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-    border-radius: 24px;
-    height: 75vh;
-    overflow: hidden;
+    border-radius: 35px;
     border: 1px solid #e2e8f0;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
-  .content-wrapper {
-    height: 100%;
+  .inner-scroll-container {
+    flex: 1;
     overflow-y: auto;
     padding: 40px;
-
+    
+    /* Custom Scrollbar Logic */
     &::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
     }
     &::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: #e2e8f0;
       border-radius: 10px;
+      &:hover { background: #cbd5e1; }
     }
-  }
 
-  @media (max-width: 768px) {
-    .headBar {
-        gap: 10px;
-    }
-    .DashMain {
-        padding: 15px;
-        margin-top: 20px;
+    @media (max-width: 768px) {
+        padding: 20px;
     }
   }
 `;
 
-export default WorkspaceDash;
+export default UserWorkspaceDash;

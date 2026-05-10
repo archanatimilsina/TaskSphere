@@ -1,135 +1,227 @@
 import React from "react";
-import '../assets/css/profile.css';
-import bleachImg from '../../../../images/bleach.jpg'; 
-import useFetch from "../../hooks/UseFetch";
 import styled from 'styled-components';
+import useFetch from "../../../hooks/useFetch";
+import bleachImg from '../../../assets/bleach.jpg'; 
 
-export default function Profile()
-{
-    const userId=84;
-    const {data:userData,loading,error}=useFetch(`http://localhost:8000/api/specificUser/${userId}`);
-    console.log(userData);
- 
+export default function PmProfile() {
+  const userId = 84;
+  const { data: userData, loading, error } = useFetch(`http://localhost:8000/api/specificUser/${userId}`);
 
-      if (loading) {
-        return <div>Loading...</div>; // Show a loading message while data is being fetched
-      }
-    
-      if (error) {
-        return <div>Error loading profile data. Please try again later.</div>; // Show an error message if there's an issue
-      }
-    
-      if (!userData || !userData.data || userData.data.length === 0) {
-        return <div>No user data found.</div>; // In case userData is null, empty, or has no data
-      }
-    
-      const user = userData.data;
-return(
-<>
-<div className="profilePic">
-<img src={bleachImg} alt="NOt found" />
-</div>
-<div className="profileDetails">
-<h2>{user.fname+" "+user.lname}'s Profile</h2>
-        <p><strong>Name:</strong> {user.fname} {user.lname}</p>
-        <p><strong>Address:</strong> {user.address}</p>
-        <p><strong>Phone:</strong> {user.phone}</p>
-        <p><strong>Gender:</strong> {user.gender}</p>
-        <p><strong>Email:</strong> {user.email}</p>
-        <p><strong>Role:</strong> {user.role}</p>
-        <div>
-          <p><strong>Citizen Card (Front):</strong></p>
-          <img src={user.citizenCardFront} alt="Citizen Card Front" width="200" />
+  if (loading) return <StatusBox>Fetching secure profile data...</StatusBox>;
+  if (error) return <StatusBox className="error">Access Error: {error}</StatusBox>;
+  
+  const user = userData?.data;
+  if (!user) return <StatusBox>No user profile records found.</StatusBox>;
+
+  return (
+    <ProfileContainer>
+      <div className="profile-header">
+        <div className="cover-photo"></div>
+        <div className="profile-main">
+          <div className="avatar-section">
+            <img src={bleachImg} alt="Profile" className="main-avatar" />
+            <div className="role-badge">{user.role}</div>
+          </div>
+          <div className="name-section">
+            <h1>{user.fname} {user.lname}</h1>
+            <p className="subtitle">Member of Tasksphere Organization</p>
+          </div>
+          <button className="update-btn">
+            <i className="fas fa-user-edit"></i> Edit Profile
+          </button>
         </div>
-        <div>
-          <p><strong>Citizen Card (Back):</strong></p>
-          <img src={user.citizenCardBack} alt="Citizen Card Back" width="200" />
-        </div>
-        <button className="updateInfo">Update Info</button>
-</div>
-</>
+      </div>
 
-)
+      <div className="info-grid">
+        <section className="info-card">
+          <h3><i className="fas fa-info-circle"></i> Personal Information</h3>
+          <div className="detail-row">
+            <span className="label">Full Name:</span>
+            <span className="value">{user.fname} {user.lname}</span>
+          </div>
+          <div className="detail-row">
+            <span className="label">Gender:</span>
+            <span className="value">{user.gender}</span>
+          </div>
+          <div className="detail-row">
+            <span className="label">Residential Address:</span>
+            <span className="value">{user.address}</span>
+          </div>
+        </section>
 
+        <section className="info-card">
+          <h3><i className="fas fa-address-book"></i> Contact Details</h3>
+          <div className="detail-row">
+            <span className="label">Email Address:</span>
+            <span className="value">{user.email}</span>
+          </div>
+          <div className="detail-row">
+            <span className="label">Phone Number:</span>
+            <span className="value">{user.phone}</span>
+          </div>
+        </section>
+
+        <section className="info-card full-width">
+          <h3><i className="fas fa-id-card"></i> Verified Credentials</h3>
+          <div className="card-images">
+            <div className="id-preview">
+              <p>Citizen Card (Front)</p>
+              <img src={user.citizenCardFront} alt="ID Front" />
+            </div>
+            <div className="id-preview">
+              <p>Citizen Card (Back)</p>
+              <img src={user.citizenCardBack} alt="ID Back" />
+            </div>
+          </div>
+        </section>
+      </div>
+    </ProfileContainer>
+  );
 }
+
+const StatusBox = styled.div`
+  text-align: center;
+  padding: 100px;
+  font-family: 'Baloo 2', cursive;
+  color: #64748b;
+  &.error { color: #ef4444; }
+`;
 
 const ProfileContainer = styled.div`
-  *{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+  max-width: 1000px;
+  margin: 0 auto;
+  font-family: 'Baloo 2', cursive;
 
+  .profile-header {
+    background: white;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+    border: 1px solid #f1f5f9;
 
-.profilePic
-{
-    width: 300px;
-    height: 300px;
-border-radius: 50%;
-box-shadow: 0px 2px 10px rgba(0, 0, 0,0.9);
-margin: auto;
-position: relative;
-z-index: 1;
-}
-.profilePic img{
-    position: absolute;
-    border-radius: 50%;
-width: 100%;
-height: 100%;
-}
-.profileDetails
-{
-    box-shadow: 0px 2px 10px rgba(0, 0, 0,0.9);
-  border-radius: 72px;
-    width: 100%;
-    height: auto;
-    padding: 50px;
-    margin-top: -130px;
-    padding-top: 150px;
-}
+    .cover-photo {
+      height: 140px;
+      background: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%);
+    }
 
+    .profile-main {
+      padding: 0 40px 40px;
+      display: flex;
+      align-items: flex-end;
+      gap: 30px;
+      margin-top: -60px;
+      position: relative;
 
+      .avatar-section {
+        position: relative;
+        .main-avatar {
+          width: 150px;
+          height: 150px;
+          border-radius: 30px;
+          border: 6px solid white;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+          object-fit: cover;
+          background: #f8fafc;
+        }
+        .role-badge {
+          position: absolute;
+          bottom: -10px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #3b82f6;
+          color: white;
+          padding: 4px 15px;
+          border-radius: 20px;
+          font-weight: 800;
+          font-size: 0.8rem;
+          text-transform: uppercase;
+        }
+      }
 
-.profileDetails h2 {
-    font-size: 34px;
-    color: #333;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .profileDetails p {
-    font-size: 16px;
-    line-height: 1.6;
-    margin-bottom: 12px;
-  }
-  
-  .profileDetails p strong {
-    font-weight: bold;
-    color: #555;
-  }
-  
-  .profileDetails div {
-    margin-top: 20px;
-    text-align: center;
-  }
-  
-  .profileDetails img {
-    margin-top: 10px;
-    max-width: 400px;
-    border-radius: 8px;
-  }
+      .name-section {
+        flex: 1;
+        padding-bottom: 10px;
+        h1 { margin: 0; font-size: 2.2rem; color: #0f172a; }
+        .subtitle { margin: 0; color: #64748b; font-size: 1.1rem; }
+      }
 
-  .updateInfo
-  {
-    width: 97%;
-    box-shadow: 0px 2px 10px rgba(0, 0, 0,0.9);
-height: 50px;
-border-radius: 34px;
-margin-top: 20px;
-color: white;
-background-color: rgb(55, 210, 55);
-border: none;
-font-size: 23px;
+      .update-btn {
+        margin-bottom: 10px;
+        background: #22c55e;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: 0.2s;
+        &:hover { background: #16a34a; transform: translateY(-2px); }
+      }
+    }
   }
 
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+
+    .info-card {
+      background: white;
+      padding: 30px;
+      border-radius: 24px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      border: 1px solid #f1f5f9;
+
+      &.full-width { grid-column: 1 / -1; }
+
+      h3 {
+        margin: 0 0 20px 0;
+        font-size: 1.3rem;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        i { color: #3b82f6; }
+      }
+
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #f8fafc;
+        &:last-child { border: none; }
+
+        .label { color: #94a3b8; font-weight: 600; }
+        .value { color: #334155; font-weight: 700; }
+      }
+
+      .card-images {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 10px;
+
+        .id-preview {
+          background: #f8fafc;
+          padding: 15px;
+          border-radius: 15px;
+          text-align: center;
+          p { margin-bottom: 10px; font-weight: 700; color: #64748b; }
+          img {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+          }
+        }
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .profile-main { flex-direction: column; align-items: center; text-align: center; }
+    .info-grid { grid-template-columns: 1fr; }
+    .card-images { grid-template-columns: 1fr; }
+  }
 `;

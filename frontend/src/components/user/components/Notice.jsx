@@ -1,193 +1,233 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import useFetch from "../../hooks/UseFetch";
+import useFetch from "../../../hooks/useFetch";
 
-const Notice = () => {
+const UserNotice = () => {
     const navigate = useNavigate();
-    const [selectedNoticeId, setSelectedNoticeId] = useState(null);
-    const { data: notice, loading, error } = useFetch("/api/allNotices");
+    const { data: notice, loading, error } = useFetch("http://localhost:8000/api/allNotices");
 
     const handleViewClick = (id) => {
-        setSelectedNoticeId(id);
         navigate("/noticeDash", { state: { noticeId: id } });
     };
 
-    if (loading) return <StatusMessage>Fetching notices...</StatusMessage>;
-    if (error) return <StatusMessage className="error">Error loading notices: {error}</StatusMessage>;
+    if (loading) return <StatusMessage>Synchronizing latest announcements...</StatusMessage>;
+    if (error) return <StatusMessage className="error">Connectivity error: Unable to retrieve notices.</StatusMessage>;
 
     return (
         <NoticeContainer>
-            <div className="notice-list">
-                <div className="header-section">
-                    <h2>Notice Board</h2>
-                    <p>Stay updated with the latest project announcements</p>
-                </div>
+            <div className="notice-wrapper">
+                <header className="notice-header">
+                    <div className="header-icon">
+                        <i className="fa-solid fa-bullhorn"></i>
+                    </div>
+                    <div className="header-text">
+                        <h2>Official Notices</h2>
+                        <p>Important updates and project-wide announcements from management.</p>
+                    </div>
+                </header>
 
-                <div className="table-wrapper">
-                    <table className="notice-table">
-                        <thead>
-                            <tr>
-                                <th style={{ width: '80px' }}>SN</th>
-                                <th>Notice Head</th>
-                                <th style={{ width: '150px', textAlign: 'center' }}>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {notice?.data?.length > 0 ? (
-                                notice.data.map((item, index) => (
-                                    <tr key={item.id || index}>
-                                        <td className="sn-column">{index + 1}</td>
-                                        <td className="notice-title">{item.noticeHead}</td>
-                                        <td className="action-column">
-                                            <button 
-                                                className="view-btn" 
-                                                onClick={() => handleViewClick(item.id)}
-                                            >
-                                                View Details
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="3" style={{ textAlign: 'center', padding: '30px' }}>
-                                        No active notices found.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                <div className="notice-grid">
+                    {notice?.data?.length > 0 ? (
+                        notice.data.map((item, index) => (
+                            <div className="notice-card" key={item.id || index}>
+                                <div className="card-index">{(index + 1).toString().padStart(2, '0')}</div>
+                                <div className="card-main">
+                                    <div className="card-meta">
+                                        <span className="category-tag">Announcement</span>
+                                        <span className="timestamp">
+                                            <i className="far fa-calendar-alt"></i> {new Date().toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                    <h3 className="notice-title">{item.noticeHead}</h3>
+                                    <p className="notice-preview">
+                                        Click below to read the full details and context of this official notice.
+                                    </p>
+                                </div>
+                                <div className="card-actions">
+                                    <button 
+                                        className="view-btn" 
+                                        onClick={() => handleViewClick(item.id)}
+                                    >
+                                        Read Notice <i className="fa-solid fa-arrow-right-long"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="empty-notices">
+                            <i className="fa-solid fa-clipboard-list"></i>
+                            <h3>No Active Notices</h3>
+                            <p>The notice board is currently clear. Check back later for updates.</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </NoticeContainer>
     );
 };
 
-export default Notice;
+export default UserNotice;
 
 const StatusMessage = styled.div`
     text-align: center;
-    padding: 50px;
+    padding: 100px;
     font-size: 1.2rem;
     font-family: 'Baloo 2', cursive;
+    color: #64748b;
     &.error { color: #ef4444; }
 `;
 
 const NoticeContainer = styled.div`
-    min-height: 100vh;
-    background-color: #f8fafc;
-    padding: 40px 20px;
     font-family: 'Baloo 2', cursive;
+    max-width: 1100px;
+    margin: 0 auto;
 
-    .notice-list {
-        width: 100%;
-        max-width: 1000px;
-        margin: 0 auto;
-        background-color: white;
-        padding: 30px;
+    .notice-wrapper {
+        padding: 20px 0;
+    }
+
+    .notice-header {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        margin-bottom: 50px;
+        background: white;
+        padding: 40px;
+        border-radius: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+
+        .header-icon {
+            width: 70px;
+            height: 70px;
+            background: #f0fdf4;
+            color: #10b981;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .header-text {
+            h2 { font-size: 2.2rem; color: #1e293b; margin: 0; }
+            p { color: #64748b; font-size: 1.1rem; margin-top: 5px; }
+        }
+    }
+
+    .notice-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .notice-card {
+        background: white;
         border-radius: 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    }
+        padding: 30px;
+        display: grid;
+        grid-template-columns: 60px 1fr 180px;
+        align-items: center;
+        gap: 30px;
+        border: 1px solid #f1f5f9;
+        transition: all 0.3s ease;
 
-    .header-section {
-        text-align: center;
-        margin-bottom: 30px;
-        
-        h2 {
-            font-size: 2.5rem;
+        &:hover {
+            transform: scale(1.01);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            border-color: #10b981;
+        }
+
+        .card-index {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #f1f5f9;
+            text-align: center;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+
+            .category-tag {
+                background: #eff6ff;
+                color: #3b82f6;
+                padding: 4px 12px;
+                border-radius: 8px;
+                font-size: 0.8rem;
+                font-weight: 800;
+                text-transform: uppercase;
+            }
+
+            .timestamp {
+                font-size: 0.85rem;
+                color: #94a3b8;
+                i { margin-right: 5px; }
+            }
+        }
+
+        .notice-title {
+            font-size: 1.4rem;
             color: #1e293b;
-            margin-bottom: 5px;
+            margin: 0;
+            font-weight: 800;
         }
 
-        p {
+        .notice-preview {
             color: #64748b;
-            font-size: 1.1rem;
+            margin-top: 5px;
+            font-size: 1rem;
         }
-    }
-
-    .table-wrapper {
-        overflow-x: auto;
-        border-radius: 12px;
-        border: 1px solid #e2e8f0;
-    }
-
-    .notice-table {
-        width: 100%;
-        border-collapse: collapse;
-        background-color: white;
-    }
-
-    .notice-table th {
-        background-color: #334155;
-        color: white;
-        padding: 18px 15px;
-        text-align: left;
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
-
-    .notice-table td {
-        padding: 15px;
-        border-bottom: 1px solid #f1f5f9;
-        color: #334155;
-        font-size: 1.05rem;
-    }
-
-    .notice-table tr:last-child td {
-        border-bottom: none;
-    }
-
-    .notice-table tr:hover {
-        background-color: #f8fafc;
-    }
-
-    .sn-column {
-        font-weight: 700;
-        color: #94a3b8;
-    }
-
-    .notice-title {
-        font-weight: 500;
-    }
-
-    .action-column {
-        text-align: center;
     }
 
     .view-btn {
-        padding: 8px 20px;
-        background-color: #10b981;
-        color: white;
-        border: none;
-        border-radius: 8px;
+        width: 100%;
+        padding: 12px;
+        background: #f8fafc;
+        color: #10b981;
+        border: 2px solid #f1f5f9;
+        border-radius: 14px;
+        font-weight: 800;
         cursor: pointer;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: 0.2s;
+        font-family: inherit;
 
         &:hover {
-            background-color: #059669;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
-        }
-
-        &:active {
-            transform: translateY(0);
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
         }
     }
 
-    @media (max-width: 768px) {
-        padding: 20px 10px;
-        
-        .notice-list {
-            padding: 15px;
-        }
+    .empty-notices {
+        text-align: center;
+        padding: 100px 0;
+        color: #cbd5e1;
+        i { font-size: 4rem; margin-bottom: 20px; }
+        h3 { color: #64748b; margin: 0; }
+        p { margin-top: 10px; }
+    }
 
-        .notice-table th, .notice-table td {
-            padding: 12px 8px;
-            font-size: 0.95rem;
+    @media (max-width: 900px) {
+        .notice-card {
+            grid-template-columns: 1fr;
+            text-align: center;
+            gap: 15px;
+            .card-index { display: none; }
+            .card-meta { justify-content: center; }
+            .card-actions { margin-top: 10px; }
+        }
+        
+        .notice-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 30px 20px;
         }
     }
 `;

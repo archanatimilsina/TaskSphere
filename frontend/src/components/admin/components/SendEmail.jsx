@@ -1,21 +1,19 @@
-// EmailForm.jsx
 import React, { useState } from 'react';
-import '../assets/css/sendEmail.css';
-import usePost from '../../hooks/UsePost';
 import styled from 'styled-components';
+import usePost from '../../../hooks/usePost';
 
-const SendEmail = () => {
-    const {postData, loading, error, data}=usePost();
+const AdminSendEmail = () => {
+  const { postData, loading } = usePost();
   const [formData, setFormData] = useState({
     email: '',
     subject: '',
     content: '',
   });
 
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState({ message: '', type: '' });
 
   const handleChange = (e) => {
-    const {name,value}=e.target;
+    const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
@@ -23,142 +21,243 @@ const SendEmail = () => {
     e.preventDefault();
 
     if (!formData.email || !formData.subject || !formData.content) {
-      setStatus('Please fill in all fields.');
+      setStatus({ message: 'Please fill in all fields.', type: 'error' });
       return;
     }
 
-    const result = await postData("http://localhost:8000/api/sendEmail",formData);
-    if(result.status===true)
-    {
-      alert("Email has sent successfully");
-      window.location.reload();
+    try {
+      const result = await postData("http://localhost:8000/api/sendEmail", formData);
+      if (result?.status === true) {
+        setStatus({ message: 'Email has been sent successfully!', type: 'success' });
+        // Clear form after success
+        setFormData({ email: '', subject: '', content: '' });
+        // Optional: window.location.reload(); 
+      } else {
+        setStatus({ message: 'Failed to send email. Please try again.', type: 'error' });
+      }
+    } catch (err) {
+      setStatus({ message: 'A server error occurred.', type: 'error' });
     }
-  
-    
   };
 
   return (
-    <div className="email-form-container">
-      <h2>Send Email</h2>
+    <SendEmailContainer>
+      <div className="email-header">
+        <div className="icon-circle">
+          <i className="fas fa-paper-plane"></i>
+        </div>
+        <h2>Communications Center</h2>
+        <p>Send official broadcast emails to employees or clients</p>
+      </div>
+
       <form onSubmit={handleSubmit} className="email-form">
-        <label>
-          Email:
-          <input
-            type="email"
-            name="email"
-            placeholder="Recipient Email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </label>
+        <div className="input-group">
+          <label>Recipient Address</label>
+          <div className="input-wrapper">
+            <i className="fas fa-envelope field-icon"></i>
+            <input
+              type="email"
+              name="email"
+              placeholder="example@tasksphere.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
 
-        <label>
-          Subject:
-          <input
-            type="text"
-            name="subject"
-            placeholder="Email Subject"
-            value={formData.subject}
-            onChange={handleChange}
-            required
-          />
-        </label>
+        <div className="input-group">
+          <label>Subject Line</label>
+          <div className="input-wrapper">
+            <i className="fas fa-heading field-icon"></i>
+            <input
+              type="text"
+              name="subject"
+              placeholder="Enter email subject"
+              value={formData.subject}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
 
-        <label>
-          Content:
+        <div className="input-group">
+          <label>Message Content</label>
           <textarea
             name="content"
-            placeholder="Type your message here..."
+            placeholder="Write your message here..."
             value={formData.content}
             onChange={handleChange}
             required
           />
-        </label>
+        </div>
 
-        <button type="submit">Send</button>
-        {status && <p className="status-message">{status}</p>}
+        <button type="submit" disabled={loading} className="send-btn">
+          {loading ? (
+            <><i className="fas fa-spinner fa-spin"></i> Dispatching...</>
+          ) : (
+            <><i className="fas fa-paper-plane"></i> Send Email</>
+          )}
+        </button>
+
+        {status.message && (
+          <div className={`status-box ${status.type}`}>
+            {status.type === 'success' ? <i className="fas fa-check-circle"></i> : <i className="fas fa-exclamation-circle"></i>}
+            {status.message}
+          </div>
+        )}
       </form>
-    </div>
+    </SendEmailContainer>
   );
 };
 
-export default SendEmail;
-
+export default AdminSendEmail;
 
 const SendEmailContainer = styled.div`
-  
-/* emailForm.css */
-.email-form-container {
-    max-width: 500px;
-    margin: 40px auto;
-    padding: 30px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    font-family: 'Segoe UI', sans-serif;
-  }
-  
-  .email-form h2 {
+  max-width: 700px;
+  margin: 40px auto;
+  background: white;
+  border-radius: 24px;
+  padding: 50px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+  font-family: 'Baloo 2', cursive;
+  border: 1px solid #f1f5f9;
+
+  .email-header {
     text-align: center;
-    color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 40px;
+
+    .icon-circle {
+      width: 70px;
+      height: 70px;
+      background: #eff6ff;
+      color: #3b82f6;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+      font-size: 1.8rem;
+    }
+
+    h2 {
+      font-size: 2.2rem;
+      color: #1e293b;
+      margin: 0;
+      font-weight: 800;
+    }
+
+    p {
+      color: #64748b;
+      margin-top: 5px;
+      font-size: 1.1rem;
+    }
   }
-  
-  .email-form label {
-    display: block;
-    margin-bottom: 15px;
-    color: #444;
-    font-weight: 500;
+
+  .input-group {
+    margin-bottom: 25px;
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #475569;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      
+      .field-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+      }
+
+      input {
+        padding-left: 45px;
+      }
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 14px 18px;
+      border: 2px solid #f1f5f9;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      background-color: #f8fafc;
+      transition: all 0.3s ease;
+      font-family: inherit;
+
+      &:focus {
+        border-color: #3b82f6;
+        outline: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      }
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+      line-height: 1.6;
+    }
   }
-  
-  .email-form input,
-  .email-form textarea {
+
+  .send-btn {
     width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 1rem;
-    background-color: #f9f9f9;
-    transition: border 0.3s;
-  }
-  
-  .email-form input:focus,
-  .email-form textarea:focus {
-    border-color: #007bff;
-    outline: none;
-    background-color: #fff;
-  }
-  
-  .email-form textarea {
-    min-height: 120px;
-    resize: vertical;
-  }
-  
-  .email-form button {
-    width: 100%;
-    padding: 12px;
-    background-color: #007bff;
+    padding: 16px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
-    font-weight: bold;
+    font-weight: 800;
     border: none;
-    border-radius: 8px;
+    border-radius: 14px;
     cursor: pointer;
-    font-size: 1rem;
-    margin-top: 10px;
-    transition: background 0.3s ease;
+    font-size: 1.15rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    &:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      transform: none;
+    }
   }
-  
-  .email-form button:hover {
-    background-color: #0056b3;
-  }
-  
-  .status-message {
-    margin-top: 15px;
-    color: green;
-    font-weight: 500;
+
+  .status-box {
+    margin-top: 25px;
+    padding: 15px;
+    border-radius: 12px;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 700;
+
+    &.success {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    &.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
   }
-  
 `;

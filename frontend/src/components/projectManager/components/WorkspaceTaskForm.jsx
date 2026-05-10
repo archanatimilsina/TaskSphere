@@ -1,14 +1,16 @@
-import React, { useState } from "react";
-import "../assets/css/workspaceTaskForm.css"; 
-import useFetch from "../../hooks/UseFetch";
-import { useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import useFetch from "../../../hooks/useFetch";
 import styled from 'styled-components';
 
-function WorkspaceTaskForm() { 
-     const location=useLocation();
-  const {workspaceId}=location.state;
-  const {data:workspace,loading:loadingWorkspace,error:errorWorkspace}=useFetch(`http://localhost:8000/api/OneWorkspace/${workspaceId}`);
-  const { data: employees, loading: loading1, error: error1 } = useFetch("http://localhost:8000/api/allUsers");
+function PmWorkspaceTaskForm() { 
+  const location = useLocation();
+  const navigate = useNavigate();
+  const workspaceId = location.state?.id;
+
+  const { data: workspace, loading: loadingWorkspace } = useFetch(`http://localhost:8000/api/OneWorkspace/${workspaceId}`);
+  const { data: employees, loading: loadingUsers } = useFetch("http://localhost:8000/api/allUsers");
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -16,17 +18,28 @@ function WorkspaceTaskForm() {
     edate: "",
     employee: [],
     priority: "",
-    status: "Not started",
-    workspaceId: workspace.workspaceId,
-    projectId: workspace.projectId,
+    status: "not started",
+    workspaceId: "",
+    projectId: "",
   });
 
-  const handleChange = (e) => {
-    const { name, value, selectedOptions } = e.target;
+  // Sync internal form state with fetched workspace data
+  useEffect(() => {
+    if (workspace?.data) {
+      setFormData(prev => ({
+        ...prev,
+        workspaceId: workspace.data.id,
+        projectId: workspace.data.projectId
+      }));
+    }
+  }, [workspace]);
 
-    if (name === "employee") {
+  const handleChange = (e) => {
+    const { name, value, selectedOptions, type } = e.target;
+
+    if (type === "select-multiple") {
       const selectedValues = Array.from(selectedOptions, (opt) => opt.value);
-      setFormData((prev) => ({ ...prev, employee: selectedValues }));
+      setFormData((prev) => ({ ...prev, [name]: selectedValues }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -34,187 +47,237 @@ function WorkspaceTaskForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert("Data is taken");
+    // API logic would be implemented here
+    alert(`Task "${formData.name}" initialized for Workspace ${workspaceId}`);
     navigate("/workspaces");
-
   };
 
+  if (loadingWorkspace || loadingUsers) {
+    return <StatusBox>Configuring workspace environment...</StatusBox>;
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="task-form">
-      <h2 className="form-title">Add New Task</h2>
+    <WorkspaceTaskFormContainer>
+      <div className="form-card">
+        <header className="form-header">
+          <div className="icon-badge">
+            <i className="fas fa-clipboard-check"></i>
+          </div>
+          <div className="header-text">
+            <h2>Workspace Task Creation</h2>
+            <p>Deploying task to: <strong>{workspace?.data?.name || `ID ${workspaceId}`}</strong></p>
+          </div>
+        </header>
 
-      <div className="form-grid">
-        <div className="form-group">
-          <label>Task Name</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="form-grid">
+            <div className="form-group full-width">
+              <label>Objective Title</label>
+              <input
+                type="text"
+                name="name"
+                placeholder="e.g., Environment Variable Configuration"
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-        <div className="form-group">
-          <label>Priority</label>
-          <select
-            name="priority"
-            value={formData.priority}
-            onChange={handleChange}
-          >
-            <option disabled value="">-- Select priority number --</option>
-            <option value="10">10</option>
-            <option value="9">9</option>
-            <option value="8">8</option>
-            <option value="7">7</option>
-            <option value="6">6</option>
-            <option value="5">5</option>
-            <option value="4">4</option>
-            <option value="3">3</option>
-            <option value="2">2</option>
-            <option value="1">1</option>
-          
-          </select>
-        </div>
+            <div className="form-group">
+              <label>Priority Matrix</label>
+              <select
+                name="priority"
+                value={formData.priority}
+                onChange={handleChange}
+                required
+              >
+                <option value="" disabled>-- Select Priority --</option>
+                {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(num => (
+                  <option key={num} value={num}>Priority Level {num}</option>
+                ))}
+              </select>
+            </div>
 
-        <div className="form-group">
-          <label>Start Date</label>
-          <input
-            type="date"
-            name="sdate"
-            value={formData.sdate}
-            onChange={handleChange}
-          />
-        </div>
+            <div className="form-group">
+              <label>Initial Status</label>
+              <select name="status" value={formData.status} onChange={handleChange}>
+                <option value="not started">Not Started</option>
+                <option value="in progress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
 
-        <div className="form-group">
-          <label>End Date</label>
-          <input
-            type="date"
-            name="edate"
-            value={formData.edate}
-            onChange={handleChange}
-          />
-        </div>
+            <div className="form-group">
+              <label><i className="far fa-calendar-plus"></i> Start Date</label>
+              <input type="date" name="sdate" value={formData.sdate} onChange={handleChange} required />
+            </div>
 
-        <div className="form-group full-width">
-        <label htmlFor="employee">Employee</label>
-          <select
-            name="employee" id="employee" 
-            className="form-input"
-            value={formData.employee}
-            onChange={handleChange}
-            multiple
-            required
-          >
-            {employees?.data?.length > 0 &&
-              employees.data.map((employee, index) => (
-                <option value={employee.fname} key={index}>
-                  {employee.fname+" "+employee.lname}
-                </option>
-              ))}
-          </select>
-        </div>
+            <div className="form-group">
+              <label><i className="fas fa-calendar-day"></i> Target Deadline</label>
+              <input type="date" name="edate" value={formData.edate} onChange={handleChange} required />
+            </div>
 
-        <div className="form-group full-width">
-          <label>Description</label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            rows="3"
-          />
-        </div>
+            <div className="form-group full-width">
+              <label>Personnel Assignment <small>(Select multiple with Ctrl/Cmd)</small></label>
+              <select
+                name="employee"
+                className="multi-select"
+                value={formData.employee}
+                onChange={handleChange}
+                multiple
+                required
+              >
+                {employees?.data?.map((emp) => (
+                  <option value={emp.fname} key={emp.id}>
+                    {emp.fname} {emp.lname}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <div className="form-group full-width">
-          <label>Status</label>
-          <select
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-          >
-            <option value="not started">Not Started</option>
-            <option value="in progress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
+            <div className="form-group full-width">
+              <label>Detailed Briefing</label>
+              <textarea
+                name="description"
+                placeholder="Describe specific task requirements and success criteria..."
+                value={formData.description}
+                onChange={handleChange}
+                rows="4"
+              />
+            </div>
+          </div>
+
+          <footer className="form-actions">
+            <button type="submit" className="submit-btn">Initialize Task</button>
+            <button type="button" className="cancel-btn" onClick={() => navigate(-1)}>Abort</button>
+          </footer>
+        </form>
       </div>
-
-      <button type="submit" className="submit-btn">
-        Submit Task
-      </button>
-    </form>
+    </WorkspaceTaskFormContainer>
   );
 }
 
-export default WorkspaceTaskForm;
+export default PmWorkspaceTaskForm;
 
+const StatusBox = styled.div`
+  text-align: center;
+  padding: 100px;
+  font-family: 'Baloo 2', cursive;
+  color: #64748b;
+`;
 
 const WorkspaceTaskFormContainer = styled.div`
-  /* TaskForm.css */
+  max-width: 800px;
+  margin: 50px auto;
+  font-family: 'Baloo 2', cursive;
 
-.task-form {
-    max-width: 700px;
-    margin: 40px auto;
-    padding: 30px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  .form-card {
+    background: white;
+    border-radius: 28px;
+    padding: 45px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+    border: 1px solid #f1f5f9;
   }
-  
-  .form-title {
-    text-align: center;
-    font-size: 28px;
-    margin-bottom: 20px;
-    color: #333;
+
+  .form-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 40px;
+    
+    .icon-badge {
+      width: 60px;
+      height: 60px;
+      background: #f0f7ff;
+      color: #3b82f6;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    h2 { margin: 0; font-size: 1.8rem; color: #0f172a; }
+    p { margin: 5px 0 0; color: #64748b; font-size: 1rem; }
   }
-  
+
   .form-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
   }
-  
+
+  .full-width { grid-column: span 2; }
+
   .form-group {
     display: flex;
     flex-direction: column;
-  }
-  
-  .form-group label {
-    margin-bottom: 6px;
-    font-weight: 600;
-    color: #555;
-  }
-  
-  .form-group input,
-  .form-group select,
-  .form-group textarea {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 16px;
-  }
-  
-  .full-width {
-    grid-column: span 2;
-  }
-  
-  .submit-btn {
-    margin-top: 30px;
-    width: 100%;
-    padding: 12px;
-    background-color: #3498db;
-    border: none;
-    border-radius: 8px;
-    font-size: 18px;
-    color: white;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  
-  .submit-btn:hover {
-    background-color: #2980b9;
-  }
-  
+    
+    label {
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      i { color: #3b82f6; margin-right: 5px; }
+      small { font-weight: 400; color: #94a3b8; }
+    }
 
+    input, select, textarea {
+      padding: 14px;
+      border: 2px solid #f1f5f9;
+      background: #f8fafc;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      
+      &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05);
+      }
+    }
+
+    .multi-select {
+      height: 140px;
+      padding: 10px;
+    }
+  }
+
+  .form-actions {
+    margin-top: 40px;
+    display: flex;
+    gap: 20px;
+
+    button {
+      flex: 1;
+      padding: 16px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 1.1rem;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .submit-btn {
+      background: #3b82f6;
+      color: white;
+      &:hover { background: #2563eb; transform: translateY(-2px); }
+    }
+
+    .cancel-btn {
+      background: #f1f5f9;
+      color: #64748b;
+      &:hover { background: #e2e8f0; color: #1e293b; }
+    }
+  }
+
+  @media (max-width: 650px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .full-width { grid-column: auto; }
+    .form-card { padding: 30px; }
+  }
 `;

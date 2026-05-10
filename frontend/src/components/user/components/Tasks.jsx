@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-// import { useNavigate } from "react-router-dom";
 import styled from 'styled-components';
-import useFetch from "../../hooks/UseFetch";
+import useFetch from "../../../hooks/useFetch";
 
-function Tasks() {
-  const { data, loading, error } = useFetch("/api/taskIndex");
-  const { data: employees, loading: loading1, error: error1 } = useFetch("/api/allUsers");
+function UserTasks() {
+  const { data, loading, error } = useFetch("http://localhost:8000/api/taskIndex");
+  const { data: employees, loading: loading1, error: error1 } = useFetch("http://localhost:8000/api/allUsers");
+  
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [formData, setFormData] = useState({
     id: "",
@@ -18,8 +18,6 @@ function Tasks() {
     priority: "",
     workspaceId: ""
   });
-
-  // const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value, selectedOptions } = e.target;
@@ -35,7 +33,7 @@ function Tasks() {
   const openUpdateModal = (task) => {
     let empIds = [];
     try {
-      empIds = Array.isArray(task.employee) ? task.employee : JSON.parse(task.employee);
+      empIds = Array.isArray(task.employee) ? task.employee : JSON.parse(task.employee || "[]");
     } catch (e) {
       empIds = [];
     }
@@ -44,7 +42,7 @@ function Tasks() {
       id: task.id,
       name: task.name || "",
       description: task.description || "",
-      employee: empIds.map(String), // Ensure IDs are strings for select matching
+      employee: empIds.map(String),
       sdate: task.sdate || "",
       edate: task.edate || "",
       status: task.status || "Not started",
@@ -56,77 +54,93 @@ function Tasks() {
 
   const handleUpdate = (e) => {
     e.preventDefault();
-    console.log("Updating task:", formData);
-    // Add your API update logic here
+    // Integration point for your update API call
+    console.log("Saving task changes:", formData);
     setShowUpdateModal(false);
   };
 
-  if (loading || loading1) return <div>Loading tasks...</div>;
-  if (error || error1) return <div>Error loading data.</div>;
+  if (loading || loading1) return <StatusWrapper>Synchronizing task queue...</StatusWrapper>;
+  if (error || error1) return <StatusWrapper className="error">Data error: Unable to load workspace tasks.</StatusWrapper>;
 
   return (
     <TasksContainer>
-      <div className="userWorkspacePublicHeaderBar">
-        <h1 id="userWorkspacePublicTaskHeading">Tasks</h1>
-        <i className="fa-solid fa-filter" id="userWorkspacePublicFilter" title="Filter"></i>
-      </div>
+      <header className="tasks-header">
+        <div className="header-text">
+          <h1>Workspace Tasks</h1>
+          <p>Track progress and manage operational assignments.</p>
+        </div>
+        <div className="header-actions">
+           <i className="fa-solid fa-arrow-down-wide-short" title="Filter & Sort"></i>
+        </div>
+      </header>
 
-      <div className="userWorkspacePublicTableContainer">
-        <table>
+      <div className="table-viewport">
+        <table className="task-table">
           <thead>
-            <tr className="rowrowrow">
-              <th className="userWorkspacePublicTh">S.N</th>
-              <th className="userWorkspacePublicTh">Name</th>
-              <th className="userWorkspacePublicTh">Description</th>
-              <th className="userWorkspacePublicTh">Assigned To</th>
-              <th className="userWorkspacePublicTh">Start Date</th>
-              <th className="userWorkspacePublicTh">End Date</th>
-              <th className="userWorkspacePublicTh">Status</th>
-              <th className="userWorkspacePublicTh">Priority</th>
-              <th className="userWorkspacePublicTh">Updated At</th>
-              <th className="userWorkspacePublicTh">Actions</th>
+            <tr>
+              <th style={{ width: '50px' }}>#</th>
+              <th>Task Identity</th>
+              <th>Details</th>
+              <th>Assignees</th>
+              <th>Timeline</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th style={{ textAlign: 'right' }}>Management</th>
             </tr>
           </thead>
-          <tbody id="userWorkspacePublicTaskTableBody">
+          <tbody>
             {data?.data?.length > 0 ? (
               data.data.map((task, index) => (
-                <tr key={task.id || index} className="rowrowrow">
-                  <td className="userWorkspacePublicTd">{index + 1}</td>
-                  <td className="userWorkspacePublicTd">{task.name}</td>
-                  <td className="userWorkspacePublicTd">{task.description}</td>
-                  <td className="userWorkspacePublicTd">
-                    {(() => {
-                      let empIds = [];
-                      try {
-                        empIds = Array.isArray(task.employee) ? task.employee : JSON.parse(task.employee);
-                      } catch (e) {
-                        empIds = [];
-                      }
-                      return empIds.map((empId) => {
-                        const emp = employees?.data?.find((e) => e.id === parseInt(empId));
-                        return emp ? (
-                          <span key={empId} className="employeeBadge">
-                            {emp.fname} {emp.lname}
-                          </span>
-                        ) : null;
-                      });
-                    })()}
+                <tr key={task.id || index}>
+                  <td className="index-col">{(index + 1).toString().padStart(2, '0')}</td>
+                  <td className="name-col">
+                    <strong>{task.name}</strong>
+                    <span className="updated-at">Ref: T-{task.id}</span>
                   </td>
-                  <td className="userWorkspacePublicTd">{task.sdate}</td>
-                  <td className="userWorkspacePublicTd">{task.edate}</td>
-                  <td className="userWorkspacePublicTd">{task.status}</td>
-                  <td className="userWorkspacePublicTd">{task.priority}</td>
-                  <td className="userWorkspacePublicTd">{new Date(task.updated_at).toLocaleDateString()}</td>
-                  <td className="userWorkspacePublicResponseTd">
-                    <div className="actionButtons">
-                      <button 
-                        className="userWorkspacePublicTaskResponseBtn userWorkspacePublicUpdateBtn" 
-                        onClick={() => openUpdateModal(task)}
-                      >
-                        Update
+                  <td className="desc-col">{task.description}</td>
+                  <td className="member-col">
+                    <div className="avatar-stack">
+                      {(() => {
+                        let empIds = [];
+                        try {
+                          empIds = Array.isArray(task.employee) ? task.employee : JSON.parse(task.employee || "[]");
+                        } catch (e) { empIds = []; }
+                        
+                        return empIds.map((empId) => {
+                          const emp = employees?.data?.find((e) => e.id === parseInt(empId));
+                          return emp ? (
+                            <span key={empId} className="user-badge" title={`${emp.fname} ${emp.lname}`}>
+                              {emp.fname.charAt(0)}{emp.lname.charAt(0)}
+                            </span>
+                          ) : null;
+                        });
+                      })()}
+                    </div>
+                  </td>
+                  <td className="date-col">
+                    <div className="date-range">
+                      <span>{task.sdate}</span>
+                      <i className="fa-solid fa-arrow-right-long"></i>
+                      <span>{task.edate}</span>
+                    </div>
+                  </td>
+                  <td className="status-col">
+                    <span className={`status-label ${task.status?.toLowerCase().replace(/\s+/g, '-')}`}>
+                      {task.status}
+                    </span>
+                  </td>
+                  <td className="priority-col">
+                    <span className={`priority-flag ${task.priority?.toLowerCase()}`}>
+                      {task.priority}
+                    </span>
+                  </td>
+                  <td className="action-col">
+                    <div className="btn-group">
+                      <button className="edit-icon" onClick={() => openUpdateModal(task)}>
+                        <i className="fa-solid fa-pen-to-square"></i>
                       </button>
-                      <button className="userWorkspacePublicTaskResponseBtn userWorkspacePublicDeleteBtn">
-                        Delete
+                      <button className="del-icon">
+                        <i className="fa-solid fa-trash-can"></i>
                       </button>
                     </div>
                   </td>
@@ -134,7 +148,7 @@ function Tasks() {
               ))
             ) : (
               <tr>
-                <td colSpan="10" style={{ textAlign: 'center', color: 'black', padding: '20px' }}>No tasks found.</td>
+                <td colSpan="8" className="empty-row">No active tasks found in this workspace.</td>
               </tr>
             )}
           </tbody>
@@ -142,54 +156,66 @@ function Tasks() {
       </div>
 
       {showUpdateModal && (
-        <div className="userWorkspacePublicModal">
-          <div className="userWorkspacePublicModalContent">
-            <span className="userWorkspacePublicClose" onClick={() => setShowUpdateModal(false)}>&times;</span>
-            <h3>Update Task</h3>
-            <form onSubmit={handleUpdate}>
-              <div className="formGroup">
-                <label htmlFor="name">Task Name</label>
-                <input type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} required />
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <header className="modal-header">
+              <h3>Refine Task Parameters</h3>
+              <button className="close-x" onClick={() => setShowUpdateModal(false)}>&times;</button>
+            </header>
+            <form onSubmit={handleUpdate} className="task-form">
+              <div className="field">
+                <label>Task Label</label>
+                <input type="text" name="name" value={formData.name} onChange={handleInputChange} required />
               </div>
 
-              <div className="formGroup">
-                <label htmlFor="description">Description</label>
-                <textarea id="description" name="description" value={formData.description} onChange={handleInputChange} required />
+              <div className="field">
+                <label>Operational Description</label>
+                <textarea name="description" value={formData.description} onChange={handleInputChange} required />
               </div>
 
-              <div className="formGroup">
-                <label htmlFor="employee">Assign Employees (Hold Ctrl/Cmd to select multiple)</label>
-                <select name="employee" id="employee" className="userWorkspacePublicFormInput" value={formData.employee} onChange={handleInputChange} multiple required>
-                  {employees?.data?.map((employee) => (
-                    <option value={employee.id} key={employee.id}>
-                      {employee.fname} {employee.lname}
+              <div className="field">
+                <label>Resource Allocation (Select Multiple)</label>
+                <select name="employee" value={formData.employee} onChange={handleInputChange} multiple required>
+                  {employees?.data?.map((emp) => (
+                    <option value={emp.id} key={emp.id}>
+                      {emp.fname} {emp.lname}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div className="dateRow">
-                <div className="formGroup">
-                  <label htmlFor="sdate">Start Date</label>
-                  <input type="date" id="sdate" name="sdate" value={formData.sdate} onChange={handleInputChange} required />
+              <div className="split-fields">
+                <div className="field">
+                  <label>Commencement</label>
+                  <input type="date" name="sdate" value={formData.sdate} onChange={handleInputChange} required />
                 </div>
-                <div className="formGroup">
-                  <label htmlFor="edate">End Date</label>
-                  <input type="date" id="edate" name="edate" value={formData.edate} onChange={handleInputChange} required />
+                <div className="field">
+                  <label>Deadline</label>
+                  <input type="date" name="edate" value={formData.edate} onChange={handleInputChange} required />
                 </div>
               </div>
 
-              <div className="formGroup">
-                <label htmlFor="priority">Priority</label>
-                <select id="priority" name="priority" value={formData.priority} onChange={handleInputChange} required className="userWorkspacePublicFormInput">
-                    <option value="">Select Priority</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                </select>
+              <div className="split-fields">
+                <div className="field">
+                    <label>Priority Tier</label>
+                    <select name="priority" value={formData.priority} onChange={handleInputChange} required>
+                        <option value="">Select Level</option>
+                        <option value="High">High Priority</option>
+                        <option value="Medium">Medium Priority</option>
+                        <option value="Low">Low Priority</option>
+                    </select>
+                </div>
+                <div className="field">
+                    <label>Current Status</label>
+                    <select name="status" value={formData.status} onChange={handleInputChange} required>
+                        <option value="Not started">Not started</option>
+                        <option value="Ongoing">Ongoing</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
               </div>
 
-              <button className="userWorkspacePublicBtn primary" type="submit">Save Changes</button>
+              <button className="submit-btn" type="submit">Deploy Changes</button>
             </form>
           </div>
         </div>
@@ -198,161 +224,191 @@ function Tasks() {
   );
 }
 
-const TasksContainer = styled.div`
-  padding: 20px;
 
-  .userWorkspacePublicHeaderBar {
+
+
+const StatusWrapper = styled.div`
+  text-align: center;
+  padding: 100px;
+  font-family: 'Baloo 2', cursive;
+  color: #64748b;
+  &.error { color: #ef4444; }
+`;
+
+const TasksContainer = styled.div`
+  padding: 30px;
+  font-family: 'Baloo 2', cursive;
+
+  .tasks-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 10px 0;
-    border-bottom: 2px solid #334155;
+    align-items: flex-end;
+    margin-bottom: 40px;
+    h1 { font-size: 2.5rem; color: #1e293b; margin: 0; }
+    p { color: #94a3b8; margin: 5px 0 0; font-size: 1.1rem; }
+    .header-actions i { font-size: 1.5rem; color: #cbd5e1; cursor: pointer; transition: 0.2s; &:hover { color: #10b981; } }
   }
 
-  #userWorkspacePublicTaskHeading {
-    font-size: 2rem;
-    color: #1e293b;
-    font-family: 'Baloo 2', cursive;
-  }
-
-  #userWorkspacePublicFilter {
-    font-size: 1.5rem;
-    color: #64748b;
-    cursor: pointer;
-    transition: all 0.3s;
-    &:hover { color: #1e293b; transform: scale(1.1); }
-  }
-
-  .userWorkspacePublicTableContainer {
-    max-height: 75vh;
-    overflow-y: auto;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
+  .table-viewport {
     background: white;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+    border: 1px solid #f1f5f9;
   }
 
-  table {
+  .task-table {
     width: 100%;
     border-collapse: collapse;
+    
+    th {
+      background: #f8fafc;
+      padding: 18px 20px;
+      text-align: left;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    td {
+      padding: 20px;
+      border-bottom: 1px solid #f8fafc;
+      vertical-align: middle;
+      color: #334155;
+    }
+
+    .index-col { font-weight: 800; color: #cbd5e1; }
+    .name-col { 
+        strong { display: block; font-size: 1.1rem; color: #1e293b; }
+        .updated-at { font-size: 0.75rem; color: #94a3b8; font-weight: 700; }
+    }
+    .desc-col { max-width: 200px; font-size: 0.9rem; color: #64748b; }
+
+    .avatar-stack {
+        display: flex;
+        .user-badge {
+            width: 32px;
+            height: 32px;
+            background: #10b981;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 800;
+            border: 2px solid white;
+            margin-right: -10px;
+            cursor: default;
+        }
+    }
+
+    .date-range {
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        i { color: #cbd5e1; font-size: 0.7rem; }
+    }
+
+    .status-label {
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        &.not-started { background: #f1f5f9; color: #64748b; }
+        &.ongoing { background: #eff6ff; color: #3b82f6; }
+        &.completed { background: #f0fdf4; color: #10b981; }
+    }
+
+    .priority-flag {
+        font-weight: 800;
+        font-size: 0.85rem;
+        &.high { color: #ef4444; &:before { content: '● '; } }
+        &.medium { color: #f59e0b; &:before { content: '● '; } }
+        &.low { color: #10b981; &:before { content: '● '; } }
+    }
+
+    .action-col .btn-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        button {
+            background: none; border: none; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s;
+            &.edit-icon { color: #3b82f6; &:hover { background: #eff6ff; } }
+            &.del-icon { color: #ef4444; &:hover { background: #fef2f2; } }
+        }
+    }
+
+    .empty-row { text-align: center; padding: 60px; color: #cbd5e1; }
   }
 
-  .userWorkspacePublicTh {
-    background-color: #f8fafc;
-    padding: 15px;
-    text-align: left;
-    color: #475569 !important;
-    font-weight: 600;
-    border-bottom: 2px solid #e2e8f0;
-    position: sticky;
-    top: 0;
-  }
-
-  .userWorkspacePublicTd {
-    padding: 15px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #1e293b !important;
-    font-size: 0.95rem;
-  }
-
-  .employeeBadge {
-    display: inline-block;
-    background: #e2e8f0;
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin: 2px;
-    font-size: 0.85rem;
-  }
-
-  .actionButtons {
-    display: flex;
-    gap: 8px;
-  }
-
-  .userWorkspacePublicTaskResponseBtn {
-    padding: 6px 12px;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: opacity 0.2s;
-    &:hover { opacity: 0.8; }
-  }
-
-  .userWorkspacePublicUpdateBtn { background-color: #3b82f6; }
-  .userWorkspacePublicDeleteBtn { background-color: #ef4444; }
-
-  /* Modal Styles */
-  .userWorkspacePublicModal {
+  /* Modal Mechanics */
+  .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
     display: flex;
-    justify-content: center;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(2px);
+    justify-content: center;
     z-index: 1000;
   }
 
-  .userWorkspacePublicModalContent {
-    background-color: white;
-    padding: 30px;
-    border-radius: 16px;
-    width: 500px;
+  .modal-box {
+    background: white;
+    width: 100%;
+    max-width: 550px;
+    border-radius: 28px;
+    padding: 40px;
     max-height: 90vh;
     overflow-y: auto;
-    position: relative;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-
-    h3 { margin-bottom: 20px; color: #1e293b; font-size: 1.5rem; }
   }
 
-  .formGroup {
-    margin-bottom: 15px;
-    label { display: block; margin-bottom: 5px; font-weight: 500; color: #475569; }
-    input, textarea, select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      font-size: 1rem;
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    h3 { font-size: 1.5rem; color: #1e293b; margin: 0; }
+    .close-x { background: none; border: none; font-size: 2rem; color: #94a3b8; cursor: pointer; &:hover { color: #ef4444; } }
+  }
+
+  .task-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    
+    .field {
+        label { display: block; font-size: 0.85rem; font-weight: 800; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; }
+        input, textarea, select {
+            width: 100%; padding: 12px; border: 2px solid #f1f5f9; border-radius: 12px; font-family: inherit; font-size: 1rem;
+            &:focus { outline: none; border-color: #10b981; }
+        }
+        textarea { height: 100px; resize: none; }
+        select[multiple] { height: 120px; }
     }
-    textarea { height: 80px; resize: vertical; }
-  }
 
-  .dateRow {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-  }
-
-  .userWorkspacePublicClose {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 1.8rem;
-    cursor: pointer;
-    color: #94a3b8;
-    &:hover { color: #ef4444; }
-  }
-
-  .userWorkspacePublicBtn.primary {
-    width: 100%;
-    background-color: #10b981;
-    color: white;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    margin-top: 10px;
-    cursor: pointer;
-    &:hover { background-color: #059669; }
+    .split-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    
+    .submit-btn {
+        background: #10b981;
+        color: white;
+        padding: 16px;
+        border: none;
+        border-radius: 16px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: 0.3s;
+        &:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2); }
+    }
   }
 `;
 
-export default Tasks;
+export default UserTasks;

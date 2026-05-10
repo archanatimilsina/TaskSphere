@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import '../assets/css/adminLogout.css';
 import styled from 'styled-components';
-
 
 export default function AdminLogout() {
     const navigate = useNavigate();
-    const [showLogOutModal, setShowLogOutModal] = useState(true);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const ConfirmLogOut = async () => {
+        setIsLoggingOut(true);
         const token = localStorage.getItem("token");
+        
         try {
             const response = await fetch("http://localhost:8000/api/logout", {
                 method: "POST",
@@ -19,189 +19,155 @@ export default function AdminLogout() {
                 }
             });
             const data = await response.json();
-            console.log(data);
+            
             if (data.status === true) {
                 localStorage.clear();
+                // Redirecting to login view
                 navigate("/loginView"); 
+            } else {
+                // If API fails, clear local storage anyway for security and redirect
+                localStorage.clear();
+                navigate("/loginView");
             }
         } catch (error) {
             console.error("Error during logout:", error);
+            // Fallback: clear local storage if network fails
+            localStorage.clear();
+            navigate("/loginView");
         }
     };
 
-    const gotoDashboard = () => {
-        navigate("/adminDash");
+    const handleCancel = () => {
+        navigate("/admin/adminDash");
     };
 
     return (
-        <AdminLogoutContainer>
-            {showLogOutModal && (
-                <div className="EmployeeModal">
-                    <div className="EmployeeModal-content">
-                        <span className="close" onClick={() => setShowLogOutModal(false)}>&times;</span>
-                        <div className="EmployeeModal-body">
-                            Are you sure you want to logout?
-                        </div>
-                        <div className="EmployeeModal-footer">
-                            <button className="deleteBtn" onClick={ConfirmLogOut}>Log out</button>
-                            <button className="cancelBtn" onClick={gotoDashboard}>Cancel</button>
-                        </div>
-                    </div>
+        <LogoutOverlay>
+            <div className="logout-card">
+                <div className="icon-wrapper">
+                    <i className="fa-solid fa-right-from-bracket"></i>
                 </div>
-            )}
-        </AdminLogoutContainer>
+                <h2>Confirm Logout</h2>
+                <p>Are you sure you want to log out of Tasksphere? You will need to enter your credentials to access your dashboard again.</p>
+                
+                <div className="button-group">
+                    <button 
+                        className="confirm-btn" 
+                        onClick={ConfirmLogOut} 
+                        disabled={isLoggingOut}
+                    >
+                        {isLoggingOut ? "Logging out..." : "Yes, Log out"}
+                    </button>
+                    <button 
+                        className="cancel-btn" 
+                        onClick={handleCancel}
+                        disabled={isLoggingOut}
+                    >
+                        Stay Logged In
+                    </button>
+                </div>
+            </div>
+        </LogoutOverlay>
     );
 }
 
-const AdminLogoutContainer = styled.div`
-
-.EmployeeWrap
-{
-    width: 100%;
-    height: 100%;
-
-}
-/* Heading */
-#Employeeheading {
-    color: black;
-    font-size: 4rem;
-    text-align: center;
-    margin: 50px 0 30px;
-}
-
-/* Employee Card */
-.employeeRow {
-    background-color: white;
-    border-radius: 20px;
-    width: 98% !important;
-    margin: auto;
-    height: 100px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: 0.2s;
-}
-.employeeRow:hover {
-    transform: scale(1.01);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-}
-.employeeRow ul {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    height: 100%;
-    padding: 30px;
-}
-.employeeRow ul li {
-    list-style: none;
-    font-size: 1.3rem;
-    color: #1e293b;
-}
-
-/* Employee Buttons */
-.employeeResponse {
-    display: flex;
-    gap: 10px;
-}
-.employeeResponse button {
-    width: 130px;
-    height: 50px;
-    border-radius: 10px;
-    border: none;
-    color: white;
-    font-size: 18px;
-    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.78);
-    cursor: pointer;
-}
-.employeeEdit {
-    background-color: green;
-}
-.employeeEdit:hover {
-    background-color: rgb(148, 212, 148);
-}
-.employeeRemove {
-    background-color: red;
-}
-.employeeRemove:hover {
-    background-color: rgb(222, 123, 123);
-}
-
-/* Modal Styling (works without Bootstrap) */
-.EmployeeModal {
+const LogoutOverlay = styled.div`
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.8); // Deep blue-slate overlay
+    backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 999;
-}
-.EmployeeModal-content {
-    background-color: #fff;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 500px;
-    padding: 30px;
-    position: relative;
-}
-.close {
-    position: absolute;
-    right: 15px;
-    top: 10px;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-}
+    z-index: 9999;
+    font-family: 'Baloo 2', cursive;
 
-/* Modal Form */
-.EmployeeModal-content h3 {
-    margin-bottom: 20px;
-}
-.EmployeeModal-content label {
-    display: block;
-    margin: 10px 0 5px;
-}
-.EmployeeModal-content input,
-.EmployeeModal-content select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-}
-.employeeSubmitBtn {
-    width: 100%;
-    padding: 12px;
-    background-color: #1e293b;
-    color: white;
-    border: 1px solid black;
-    border-radius: 8px;
-    font-size: 18px;
-}
+    .logout-card {
+        background: white;
+        width: 90%;
+        max-width: 450px;
+        padding: 40px;
+        border-radius: 24px;
+        text-align: center;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        animation: slideUp 0.3s ease-out;
+    }
 
-/* Modal Footer Button */
-.EmployeeModal-footer {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-}
-.EmployeeModal-footer button {
-    padding: 10px 25px;
-    font-size: 16px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-}
-.EmployeeModal-footer .deleteBtn {
-    background-color: red;
-    color: white;
-}
-.EmployeeModal-footer .cancelBtn {
-    background-color: #ccc;
-    color: black;
-}
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
 
+    .icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background-color: #fee2e2;
+        color: #ef4444;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2rem;
+    }
+
+    h2 {
+        color: #1e293b;
+        font-size: 1.8rem;
+        margin-bottom: 12px;
+        font-weight: 800;
+    }
+
+    p {
+        color: #64748b;
+        font-size: 1.05rem;
+        line-height: 1.5;
+        margin-bottom: 30px;
+    }
+
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+    }
+
+    .confirm-btn {
+        background-color: #ef4444;
+        color: white;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+
+        &:hover {
+            background-color: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        &:disabled {
+            background-color: #fca5a5;
+            cursor: not-allowed;
+        }
+    }
+
+    .cancel-btn {
+        background-color: #f1f5f9;
+        color: #475569;
+
+        &:hover {
+            background-color: #e2e8f0;
+            color: #1e293b;
+        }
+    }
 `;

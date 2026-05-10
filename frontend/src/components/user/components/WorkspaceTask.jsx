@@ -1,65 +1,82 @@
 import React from "react";
 import styled from 'styled-components';
-import useFetch from "../../hooks/useFetch";
+import useFetch from "../../../hooks/useFetch";
 
 export default function UserWorkspaceTask({ id }) {
     const workspaceId = id;
-    const { data, loading, error } = useFetch(`/api/workspaceTask/${workspaceId}`);
+    const { data, loading, error } = useFetch(`http://localhost:8000/api/workspaceTask/${workspaceId}`);
 
-    if (loading) return <StatusMessage>Loading workspace tasks...</StatusMessage>;
-    if (error) return <StatusMessage error>Error loading tasks: {error}</StatusMessage>;
+    if (loading) return <StatusMessage>Synchronizing workspace task queue...</StatusMessage>;
+    if (error) return <StatusMessage error>System Error: Unable to synchronize tasks. ({error})</StatusMessage>;
 
     return (
         <UserWorkspaceTaskContainer>
-            <div className="header-flex">
-                <h1 id="userWorkspaceHeading">Tasks</h1>
+            <header className="module-header">
+                <div className="title-area">
+                    <h1 id="userWorkspaceHeading">Operational Tasks</h1>
+                    <p className="task-count">{data?.data?.length || 0} Assignments Active</p>
+                </div>
                 <button className="userWorkspaceAssignTaskBtn">
-                    <i className="fas fa-plus"></i> Assign Task
+                    <i className="fa-solid fa-plus-circle"></i>
+                    <span>Initialize New Task</span>
                 </button>
-            </div>
+            </header>
 
-            <div className="userWorkspaceTableWrapper">
-                <table className="userWorkspaceTable">
-                    <thead className="userWorkspaceTableHead">
+            <div className="table-viewport">
+                <table className="task-grid">
+                    <thead>
                         <tr>
-                            <th>S.N</th>
-                            <th>Task Name</th>
-                            <th>Description</th>
-                            <th>Duration</th>
+                            <th className="id-th">REF</th>
+                            <th className="identity-th">Task Identity</th>
+                            <th className="details-th">Operational Details</th>
+                            <th className="timeline-th">Timeline</th>
                             <th>Status</th>
                             <th>Priority</th>
                         </tr>
                     </thead>
-                    <tbody id="userWorkspaceTableBody">
+                    <tbody>
                         {data?.data?.length > 0 ? (
                             data.data.map((task, index) => (
-                                <tr key={task.id || index} className="userWorkspaceTableRow">
-                                    <td className="index-col">{index + 1}</td>
-                                    <td className="name-col"><strong>{task.name}</strong></td>
-                                    <td className="desc-col">{task.description}</td>
-                                    <td>
-                                        <div className="date-range">
-                                            <span>{task.sdate}</span>
-                                            <small>to</small>
-                                            <span>{task.edate}</span>
+                                <tr key={task.id || index}>
+                                    <td className="index-col">
+                                        {(index + 1).toString().padStart(2, '0')}
+                                    </td>
+                                    <td className="name-col">
+                                        <div className="name-wrapper">
+                                            <strong>{task.name}</strong>
+                                            <small>ID: #{task.id}</small>
+                                        </div>
+                                    </td>
+                                    <td className="desc-col">
+                                        <p>{task.description || "No description provided for this assignment."}</p>
+                                    </td>
+                                    <td className="date-col">
+                                        <div className="timeline-capsule">
+                                            <span className="date-pill start">{task.sdate}</span>
+                                            <i className="fa-solid fa-chevron-right"></i>
+                                            <span className="date-pill end">{task.edate}</span>
                                         </div>
                                     </td>
                                     <td>
-                                        <Badge className={`status-${task.status?.toLowerCase()}`}>
+                                        <StatusBadge className={task.status?.toLowerCase().replace(/\s+/g, '-')}>
                                             {task.status}
-                                        </Badge>
+                                        </StatusBadge>
                                     </td>
                                     <td>
-                                        <Badge className={`priority-${task.priority?.toLowerCase()}`}>
+                                        <PriorityBadge className={task.priority?.toLowerCase()}>
+                                            <i className="fa-solid fa-bolt-lightning"></i>
                                             {task.priority}
-                                        </Badge>
+                                        </PriorityBadge>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
-                                    No tasks found for this workspace.
+                                <td colSpan="6" className="empty-viewport">
+                                    <div className="empty-message">
+                                        <i className="fa-solid fa-folder-open"></i>
+                                        <p>No active tasks detected in this workspace nexus.</p>
+                                    </div>
                                 </td>
                             </tr>
                         )}
@@ -71,150 +88,164 @@ export default function UserWorkspaceTask({ id }) {
 }
 
 const StatusMessage = styled.div`
-  padding: 40px;
+  padding: 80px;
   text-align: center;
-  font-size: 1.2rem;
-  color: ${props => props.error ? '#ef4444' : '#64748b'};
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.3rem;
+  color: ${props => props.error ? '#ef4444' : '#94a3b8'};
 `;
 
-const Badge = styled.span`
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: capitalize;
+const StatusBadge = styled.span`
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   display: inline-block;
 
-  &.status-completed { background: #dcfce7; color: #166534; }
-  &.status-pending { background: #fef2f2; color: #991b1b; }
-  &.status-inprogress { background: #eff6ff; color: #1e40af; }
+  &.completed { background: #f0fdf4; color: #10b981; }
+  &.ongoing, &.in-progress { background: #eff6ff; color: #3b82f6; }
+  &.pending, &.not-started { background: #f1f5f9; color: #64748b; }
+`;
 
-  &.priority-high { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-  &.priority-medium { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-  &.priority-low { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+const PriorityBadge = styled.span`
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+
+  i { font-size: 0.7rem; }
+
+  &.high { color: #ef4444; background: #fef2f2; }
+  &.medium { color: #f59e0b; background: #fffbeb; }
+  &.low { color: #10b981; background: #f0fdf4; }
 `;
 
 const UserWorkspaceTaskContainer = styled.div`
-  padding: 20px;
   background: white;
-  min-height: 100%;
+  font-family: 'Baloo 2', cursive;
 
-  .header-flex {
+  .module-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
-    border-bottom: 2px solid #f1f5f9;
-    padding-bottom: 10px;
+    margin-bottom: 35px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f8fafc;
   }
 
-  #userWorkspaceHeading {
-    font-size: 1.8rem;
-    color: #1e293b;
-    margin: 0;
-    font-weight: 700;
+  .title-area {
+    h1 { font-size: 2.2rem; color: #1e293b; margin: 0; }
+    .task-count { color: #94a3b8; font-size: 1.1rem; margin-top: 2px; font-weight: 600; }
   }
 
   .userWorkspaceAssignTaskBtn {
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    background-color: #1e293b;
+    padding: 14px 28px;
+    border-radius: 16px;
+    background: #1e293b;
     color: white;
     border: none;
+    font-family: inherit;
+    font-weight: 800;
     cursor: pointer;
-    transition: all 0.2s;
     display: flex;
     align-items: center;
-    gap: 8px;
-
+    gap: 12px;
+    transition: 0.3s;
+    
     &:hover {
-      background-color: #334155;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      background: #0f172a;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px -6px rgba(0,0,0,0.2);
     }
   }
 
-  .userWorkspaceTableWrapper {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
+  .table-viewport {
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px solid #f1f5f9;
     overflow: hidden;
-    background: white;
   }
 
-  .userWorkspaceTable {
+  .task-grid {
     width: 100%;
     border-collapse: collapse;
-    text-align: left;
-  }
-
-  .userWorkspaceTableHead {
-    background-color: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
-
+    
     th {
-      padding: 16px;
-      color: #475569;
+      background: #f8fafc;
+      padding: 18px 20px;
+      text-align: left;
       font-size: 0.85rem;
-      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-  }
-
-  .userWorkspaceTableRow {
-    border-bottom: 1px solid #f1f5f9;
-    transition: background 0.2s;
-
-    &:hover {
-      background-color: #f8fafc;
+      letter-spacing: 1px;
+      color: #94a3b8;
     }
 
     td {
-      padding: 16px;
-      color: #334155;
-      font-size: 0.95rem;
+      padding: 20px;
+      border-bottom: 1px solid #f8fafc;
       vertical-align: middle;
     }
-  }
 
-  .index-col { font-weight: bold; color: #94a3b8; width: 50px; }
-  .name-col { min-width: 200px; color: #1e293b; }
-  .desc-col { max-width: 300px; color: #64748b; font-size: 0.9rem; line-height: 1.4; }
-
-  .date-range {
-    display: flex;
-    flex-direction: column;
-    font-size: 0.85rem;
+    .index-col { font-weight: 800; color: #cbd5e1; font-size: 0.9rem; }
     
-    small {
-      color: #94a3b8;
-      margin: 2px 0;
-      font-style: italic;
+    .name-col {
+        .name-wrapper {
+            display: flex;
+            flex-direction: column;
+            strong { font-size: 1.1rem; color: #1e293b; }
+            small { color: #94a3b8; font-weight: 800; font-size: 0.75rem; }
+        }
+    }
+
+    .desc-col {
+        p { margin: 0; font-size: 0.95rem; color: #64748b; max-width: 320px; line-height: 1.5; }
+    }
+
+    .date-col {
+        .timeline-capsule {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            i { font-size: 0.7rem; color: #cbd5e1; }
+            .date-pill {
+                font-size: 0.85rem;
+                font-weight: 700;
+                color: #475569;
+                background: #f1f5f9;
+                padding: 4px 10px;
+                border-radius: 8px;
+            }
+        }
+    }
+
+    .empty-viewport {
+        padding: 80px 0;
+        text-align: center;
+        .empty-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            color: #cbd5e1;
+            i { font-size: 3.5rem; }
+            p { font-size: 1.2rem; font-weight: 600; margin: 0; }
+        }
     }
   }
 
-  @media screen and (max-width: 1024px) {
-    .userWorkspaceTableWrapper {
-      overflow-x: auto;
-    }
+  @media (max-width: 1100px) {
+    .table-viewport { overflow-x: auto; }
+    .task-grid { min-width: 900px; }
   }
 
-  @media screen and (max-width: 768px) {
-    #userWorkspaceHeading {
-      font-size: 1.5rem;
-    }
-    
-    .header-flex {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 15px;
-    }
-
-    .userWorkspaceAssignTaskBtn {
-      width: 100%;
-      justify-content: center;
-    }
+  @media (max-width: 768px) {
+    .module-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+    .userWorkspaceAssignTaskBtn { width: 100%; justify-content: center; }
   }
 `;

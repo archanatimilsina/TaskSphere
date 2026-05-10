@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import '../assets/css/pmLogout.css';
 import styled from 'styled-components';
 
 export default function PmLogout() {
@@ -18,189 +17,149 @@ export default function PmLogout() {
                 }
             });
             const data = await response.json();
-            console.log(data);
+            
             if (data.status === true) {
                 localStorage.clear();
-                navigate("/loginView"); // Navigate to login view
+                navigate("/loginView");
             }
         } catch (error) {
             console.error("Error during logout:", error);
+            // Fallback for UI if API fails but session should end
+            localStorage.clear();
+            navigate("/loginView");
         }
     };
 
-    const gotoDashboard = () => {
-        navigate("/projectManagerDash");
+    const closeModal = () => {
+        setShowLogOutModal(false);
+        navigate(-1); // Returns user to previous page
     };
 
     return (
-        <>
+        <PmLogoutContainer>
             {showLogOutModal && (
-                <div className="EmployeeModal">
-                    <div className="EmployeeModal-content">
-                        <span className="close" onClick={() => setShowLogOutModal(false)}>&times;</span>
-                        <div className="EmployeeModal-body">
-                            Are you sure you want to logout?
+                <div className="LogoutOverlay">
+                    <div className="LogoutCard">
+                        <div className="IconSection">
+                            <i className="fas fa-sign-out-alt"></i>
                         </div>
-                        <div className="EmployeeModal-footer">
-                            <button className="deleteBtn" onClick={ConfirmLogOut}>Log out</button>
-                            <button className="cancelBtn" onClick={gotoDashboard}>Cancel</button>
+                        
+                        <div className="TextSection">
+                            <h3>Confirm Logout</h3>
+                            <p>Are you sure you want to end your session? You will need to log back in to manage your workspaces and projects.</p>
+                        </div>
+
+                        <div className="ActionButtons">
+                            <button className="confirm-btn" onClick={ConfirmLogOut}>
+                                Yes, Logout
+                            </button>
+                            <button className="cancel-btn" onClick={closeModal}>
+                                Stay Logged In
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
-        </>
+        </PmLogoutContainer>
     );
 }
 
 const PmLogoutContainer = styled.div`
-  
-.EmployeeWrap
-{
-    width: 100%;
-    height: 100%;
+  font-family: 'Baloo 2', cursive;
 
-}
-/* Heading */
-#Employeeheading {
-    color: black;
-    font-size: 4rem;
-    text-align: center;
-    margin: 50px 0 30px;
-}
-
-/* Employee Card */
-.employeeRow {
-    background-color: white;
-    border-radius: 20px;
-    width: 98% !important;
-    margin: auto;
-    height: 100px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: 0.2s;
-}
-.employeeRow:hover {
-    transform: scale(1.01);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-}
-.employeeRow ul {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    height: 100%;
-    padding: 30px;
-}
-.employeeRow ul li {
-    list-style: none;
-    font-size: 1.3rem;
-    color: #1e293b;
-}
-
-/* Employee Buttons */
-.employeeResponse {
-    display: flex;
-    gap: 10px;
-}
-.employeeResponse button {
-    width: 130px;
-    height: 50px;
-    border-radius: 10px;
-    border: none;
-    color: white;
-    font-size: 18px;
-    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.78);
-    cursor: pointer;
-}
-.employeeEdit {
-    background-color: green;
-}
-.employeeEdit:hover {
-    background-color: rgb(148, 212, 148);
-}
-.employeeRemove {
-    background-color: red;
-}
-.employeeRemove:hover {
-    background-color: rgb(222, 123, 123);
-}
-
-/* Modal Styling (works without Bootstrap) */
-.EmployeeModal {
+  .LogoutOverlay {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.85); /* Deep slate semi-transparent */
+    backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 999;
-}
-.EmployeeModal-content {
-    background-color: #fff;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 500px;
-    padding: 30px;
-    position: relative;
-}
-.close {
-    position: absolute;
-    right: 15px;
-    top: 10px;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-}
+    z-index: 9999;
+    padding: 20px;
+  }
 
-/* Modal Form */
-.EmployeeModal-content h3 {
-    margin-bottom: 20px;
-}
-.EmployeeModal-content label {
-    display: block;
-    margin: 10px 0 5px;
-}
-.EmployeeModal-content input,
-.EmployeeModal-content select {
+  .LogoutCard {
+    background: white;
     width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-}
-.employeeSubmitBtn {
-    width: 100%;
-    padding: 12px;
-    background-color: #1e293b;
-    color: white;
-    border: 1px solid black;
-    border-radius: 8px;
-    font-size: 18px;
-}
+    max-width: 450px;
+    padding: 50px 40px;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease-out;
 
-/* Modal Footer Button */
-.EmployeeModal-footer {
-    margin-top: 20px;
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+  }
+
+  .IconSection {
+    width: 80px;
+    height: 80px;
+    background: #fee2e2;
+    color: #ef4444;
+    border-radius: 50%;
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 15px;
-}
-.EmployeeModal-footer button {
-    padding: 10px 25px;
-    font-size: 16px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-}
-.EmployeeModal-footer .deleteBtn {
-    background-color: red;
-    color: white;
-}
-.EmployeeModal-footer .cancelBtn {
-    background-color: #ccc;
-    color: black;
-}
+    font-size: 2rem;
+    margin: 0 auto 25px;
+  }
 
+  .TextSection {
+    h3 {
+      font-size: 1.8rem;
+      color: #0f172a;
+      margin-bottom: 12px;
+    }
+    p {
+      color: #64748b;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      margin-bottom: 35px;
+    }
+  }
+
+  .ActionButtons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .confirm-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      &:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+      }
+    }
+
+    .cancel-btn {
+      background: #f1f5f9;
+      color: #64748b;
+      border: none;
+      &:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+      }
+    }
+  }
 `;

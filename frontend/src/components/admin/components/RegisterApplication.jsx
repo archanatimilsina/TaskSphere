@@ -1,479 +1,357 @@
-import React, { useEffect, useState } from "react";
-import '../assets/css/registerApplication.css';
-import useFetch from '../../hooks/UseFetch';
-import usePost from '../../hooks/usePost';
-import useDelete from "../../hooks/useDelete";
+import React, { useState } from "react";
 import styled from 'styled-components';
+import useFetch from '../../../hooks/useFetch';
+import usePost from '../../../hooks/usePost';
+import useDelete from "../../../hooks/useDelete";
 
-function RegisterApplication() {
-    const { data, loading, error } = useFetch("/api/allApplication");
+function AdminRegisterApplication() {
+    const { data, loading, error } = useFetch("http://localhost:8000/api/allApplication");
+    const { postData, loading: isPosting } = usePost();
+    const { DeleteData } = useDelete();
+
     const [selectedAppId, setSelectedAppId] = useState(null);
     const [secretCode, setSecretCode] = useState('');
-const [role, setRole] = useState('');
-const { postData,  loading:loading1, error:error1 ,data: postResult} = usePost();
-const { DeleteData,  loading:loading2, error:error2 ,data: deleteResult} = useDelete();
-
-
-
- const HandleAccept = (id) => {
-  setSelectedAppId(id);
-}
-
-const HandleReject = async(id) => {
-    const SendEmailResult= await postData("http://localhost:8000/api/sendRejectEmail", id);
-  const result = await DeleteData(`http://localhost:8000/api/removeData/${id}`);
-  if(result?.status===true)
-    {
-        alert("Application Rejected");
-        window.location.reload();
-       
-    }
-        
-     else {
-        alert("Failed to reject the application. Please try again.");
-    }
-}
-const handleSubmit=async (e)=>
-{
-e.preventDefault();
-
-if (!secretCode || !role) {
-    alert("Please fill in both the secret code and role.");
-    return;
-}
-const input = {
-    scode: secretCode,
-    applicationId: selectedAppId, 
-    role: role
-};
-try {
+    const [role, setRole] = useState('');
     
-    const result = await postData("http://localhost:8000/api/passScode", input);
-    if (result?.status === true) {
-        setSecretCode("");
-        setRole("");
-        const dismissBtn= document.getElementById("dismissBtn");
-        dismissBtn.click();
-    const delResult= await DeleteData(`http://localhost:8000/api/removeData/${selectedAppId}`);
-    console.log(delResult);
-    if(delResult?.status===true)
-    {
-        alert("Application registered successfully");
-        window.location.reload();
-       
-    }
-        
-    } else {
-        alert("Failed to register the application. Please try again.");
-    }
-} catch (error) {
-    alert("Error: " + error.message); // Handle any error that occurs during the request
-}
-}
+    const [modalState, setModalState] = useState({
+        accept: false,
+        reject: false,
+        scode: false
+    });
 
-    
+    const closeAllModals = () => {
+        setModalState({ accept: false, reject: false, scode: false });
+        setSecretCode('');
+        setRole('');
+    };
+
+    const handleRejectAction = async () => {
+        await postData("http://localhost:8000/api/sendRejectEmail", { id: selectedAppId });
+        const result = await DeleteData(`http://localhost:8000/api/removeData/${selectedAppId}`);
+        if (result?.status === true) {
+            alert("Application Rejected and Email Sent.");
+        }
+        closeAllModals();
+    };
+
+    const handleFinalAccept = async (e) => {
+        e.preventDefault();
+        if (!secretCode || !role) {
+            alert("Please provide both the secret code and role.");
+            return;
+        }
+
+        const input = { scode: secretCode, applicationId: selectedAppId, role: role };
+        
+            const result = await postData("http://localhost:8000/api/passScode", input);
+            console.log(result)
+            if (result?.status === true) {
+                const delResult = await DeleteData(`http://localhost:8000/api/removeData/${selectedAppId}`);
+                if (delResult?.status === true) {
+                    alert("Application registered successfully!");
+                    window.location.reload();
+                }
+            } else {
+                alert("Authorization failed. Check secret code.");
+            }
+       
+        closeAllModals();
+    };
+
+    if (loading) return <StatusBox>Fetching pending applications...</StatusBox>;
+    if (error) return <StatusBox className="error">Error: {error}</StatusBox>;
+
     return (
-        <>
-            <h1 id="Employeeheading">Employees</h1>
-            {
+        <RegisterContainer>
+            <div className="header-area">
+                <h1>Registration Requests</h1>
+                <p>Review and authorize new employee access requests</p>
+            </div>
 
-                data?.data?.length > 0 && data.data.map((Employee, index) => {
-                    return (
-                        <div className="employeeRow" key={index}>
+            <div className="table-header">
+                <div className="th-item">#</div>
+                <div className="th-item">Applicant Name</div>
+                <div className="th-item">Contact</div>
+                <div className="th-item">Email Address</div>
+                <div className="th-item">Decision</div>
+            </div>
+
+            <div className="EmployeeWrap">
+                {data?.data?.length > 0 ? (
+                    data.data.map((Employee, index) => (
+                        <div className="employeeRow" key={Employee.id || index}>
                             <ul>
-                                <li>{index + 1}</li>
-                                <li>{Employee.fname + " " + Employee.lname}</li>
-                                <li>{Employee.phone}</li>
-                                <li>{Employee.email}</li>
-                                <li>
-                                    <button className="responseBtn AcceptBtn" onClick={() => HandleAccept(Employee.id)} data-bs-toggle="modal" data-bs-target="#acceptModal">Accept</button>
-                                    <button className="responseBtn RejectBtn" onClick={() => setSelectedAppId(Employee.id)} data-bs-toggle="modal" data-bs-target="#rejectModal">Reject</button>
+                                <li className="col-idx">{index + 1}</li>
+                                <li className="col-name">{Employee.fname} {Employee.lname}</li>
+                                <li className="col-phone">{Employee.phone}</li>
+                                <li className="col-email">{Employee.email}</li>
+                                <li className="col-actions">
+                                    <button className="responseBtn AcceptBtn" onClick={() => { setSelectedAppId(Employee.id); setModalState({ ...modalState, accept: true }); }}>
+                                        <i className="fas fa-check"></i> Accept
+                                    </button>
+                                    <button className="responseBtn RejectBtn" onClick={() => { setSelectedAppId(Employee.id); setModalState({ ...modalState, reject: true }); }}>
+                                        <i className="fas fa-times"></i> Reject
+                                    </button>
                                 </li>
                             </ul>
                         </div>
-                    )
-                })
-            }
-            {/* Secret Code model */}
-            <div className="modal fade" id="scodeModal" data-bs-backdrop="static" data-bs-keyboard="false"
-  tabIndex="-1" aria-labelledby="singlePostLabel" aria-hidden="true">
-  <div className="modal-dialog">
-    <div className="modal-content">
-      <div className="modal-header">
-        <h5 className="modal-title" id="singlePostLabel">Enter the secret code and role</h5>
-        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" id="dismissBtn">X</button>
-      </div>
+                    ))
+                ) : (
+                    <div className="empty-state">No pending registration applications.</div>
+                )}
+            </div>
 
- <form action="" onSubmit={handleSubmit}>
-      <div className="modal-body">
-       
-          <input
-          type="password"
-          id="scode"
-          placeholder="Secret code"
-          value={secretCode || ""}
-          onChange={(e) => setSecretCode(e.target.value)}
-        />
-
-
-{/* <div className="form-group">
-        <label htmlFor="ProjectId">Employee</label>
-          <select
-             name="projectId" id="ProjectId" 
-             value={formData.projectId}
-            onChange={handleChange}
-            required
-          >
-            <option disabled value="">-- Select Project --</option>
-            {projects?.data?.length > 0 &&
-              projects.data.map((project, index) => (
-                <option value={project.id} key={index}>
-                  {project.name}
-                </option>
-              ))}
-          </select>
-        </div> */}
-
-
-
-        <select
-             name="role" id="role" 
-             value={role || ""}
-            onChange={(e) => setRole(e.target.value)}
-            required
-          >
-            <option disabled value="">-- Select role --</option>
-                <option value="admin">Admin</option>
-                <option value="user">User</option>
-                <option value="Project Manager">Project Manager</option>
-          </select>
-
-
-        {/* <input
-          type="text"
-          id="role"
-          placeholder="Role"
-          value={role || ""}
-          onChange={(e) => setRole(e.target.value)}
-        /> */}
-        <input
-          type="hidden"
-          name="applicationId"
-          id="applicationIdInput"
-          value={selectedAppId || ""}
-        />   
-      
-       
-      </div>
-
-      <div className="modal-footer">
-        <button type="submit" className="btn btn-success scodeEnter">Okay</button>
-      </div> 
-       </form>
-    </div>
-  </div>
-</div>
-
-                {/* Secret Code model */}
-
-                {/* Reject model */}
-                <div className="modal fade" id="rejectModal" data-bs-backdrop="static" data-bs-keyboard="false"
-                    tabIndex="-1" aria-labelledby="deleteLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
-                            </div>
-                            <div className="modal-body">
-                                <div className="single-data" width="100%" height="100%">
-                                    Are you sure you want to reject?
-                                </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-primary rejectConfirmBtn" data-bs-dismiss="modal" onClick={()=>HandleReject(selectedAppId)}>Reject</button>
-                            </div>
+            {/* Accept Confirmation Modal */}
+            {modalState.accept && (
+                <ModalOverlay>
+                    <div className="custom-modal">
+                        <div className="modal-icon accept-icon"><i className="fas fa-user-check"></i></div>
+                        <h3>Accept Application?</h3>
+                        <p>This will move the applicant to the next stage of registration.</p>
+                        <div className="modal-footer">
+                            <button className="confirm-btn green" onClick={() => setModalState({ accept: false, scode: true })}>Proceed</button>
+                            <button className="cancel-btn" onClick={closeAllModals}>Cancel</button>
                         </div>
                     </div>
-                </div>
-                {/* Reject model */}
+                </ModalOverlay>
+            )}
 
-                {/* Accept model */}
-                <div className="modal fade" id="acceptModal" data-bs-backdrop="static" data-bs-keyboard="false"
-                    tabIndex="-1" aria-labelledby="deleteLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <button type="button" className="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close">X</button>
+            {/* Secret Code & Role Modal */}
+            {modalState.scode && (
+                <ModalOverlay>
+                    <div className="custom-modal scode-modal">
+                        <header>
+                            <h3>Final Authorization</h3>
+                            <button className="close-x" onClick={closeAllModals}>&times;</button>
+                        </header>
+                        <form onSubmit={handleFinalAccept}>
+                            <div className="form-group">
+                                <label>Temporary Secret Code</label>
+                                <input 
+                                    type="password" 
+                                    placeholder="Enter system code" 
+                                    value={secretCode} 
+                                    onChange={(e) => setSecretCode(e.target.value)} 
+                                    required 
+                                />
                             </div>
-                            <div className="modal-body">
-                                <div className="single-data" width="100%" height="100%">
-                                    Are you sure you want to Accept?
-                                </div>
+                            <div className="form-group">
+                                <label>Assign Staff Role</label>
+                                <select value={role} onChange={(e) => setRole(e.target.value)} required>
+                                    <option value="" disabled>-- Select System Role --</option>
+                                    <option value="user">User</option>
+                                    <option value="Project Manager">Project Manager</option>
+                                    <option value="admin">Admin</option>
+                                </select>
                             </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-primary acceptConfirmBtn"
-                                    data-bs-toggle="modal" data-bs-target="#scodeModal"
-                                    data-bs-dismiss="modal">Accept</button>
-                            </div>
+                            <button type="submit" className="submit-auth-btn" disabled={isPosting}>
+                                {isPosting ? "Processing..." : "Complete Registration"}
+                            </button>
+                        </form>
+                    </div>
+                </ModalOverlay>
+            )}
+
+            {/* Reject Confirmation Modal */}
+            {modalState.reject && (
+                <ModalOverlay>
+                    <div className="custom-modal">
+                        <div className="modal-icon reject-icon"><i className="fas fa-user-slash"></i></div>
+                        <h3>Reject Applicant?</h3>
+                        <p>This will permanently delete the application and notify the user via email.</p>
+                        <div className="modal-footer">
+                            <button className="confirm-btn red" onClick={handleRejectAction}>Reject & Notify</button>
+                            <button className="cancel-btn" onClick={closeAllModals}>Cancel</button>
                         </div>
                     </div>
-                </div>
-
-                {/* Accept model */}
-
-            </>
-            );
+                </ModalOverlay>
+            )}
+        </RegisterContainer>
+    );
 }
 
-            export default RegisterApplication;
+export default AdminRegisterApplication;
 
-
-            const RegisterApplicationContainer = styled.div`
-  
-
-
-
-* {
-    margin: 0;
-    box-sizing: border-box;
-    padding: 0;
-    font-family: 'Baloo 2', sans-serif;
-}
-body {
-    background-color: #1e293b;
-}
-
-#Employeeheading {
-    color: black;
-    font-size: 4rem;
+const StatusBox = styled.div`
     text-align: center;
-    margin-top: 50px;
-    margin-bottom: 30px;
-}
-
-.employeeRow {
-    background-color: white;
-    border-radius: 20px;
-    width: 80%;
-    margin: 30px auto;
-    height: 100px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-.employeeRow:hover {
-    transform: scale(1.01);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-}
-
-.employeeRow ul {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    padding: 30px;
-    align-items: center;
-}
-.employeeRow ul li {
-    list-style: none;
-    font-size: 1.3rem;
-    color: #1e293b;
-}
-
-
-.responseBtn{
-    width: 100px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-    height: 60px;
-    border-radius: 10px;
-    margin-right: 10px;
-    color: white;
-    font-size: 1.3rem;
-    border:0.1px solid gray ;
-    z-index: 1;
-}
-.AcceptBtn{
-    background-color: green;
-}
-.RejectBtn{
-    background-color: red;
-}
-.RejectBtn:hover{
-    background-color: #ef4444;
-    border: none;
-    transition: background-color 0.3s;
-}
-.AcceptBtn:hover{
-    background-color: #10b981;
-    border: none;
-}
-/* General Modal Styling */
-.modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    z-index: 9999;
-}
-
-.modal.show {
-    opacity: 1;
-    visibility: visible;
-}
-
-.modal-dialog {
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.modal-content {
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-.modal-header {
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-bottom: 2px solid #dee2e6;
-    border-radius: 12px 12px 0 0;
-}
-
-.modal-header h5 {
-    margin: 0;
+    padding: 100px;
     font-size: 1.2rem;
-    font-weight: bold;
-    color: black;
-}
+    color: #64748b;
+    font-family: 'Baloo 2', cursive;
+    &.error { color: #ef4444; }
+`;
 
-.btn-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: black;
-    padding: 0;
-    margin: 0;
-    cursor: pointer;
-    position: absolute;
-    right: 10px;
-    top: 5px;
-}
+const ModalOverlay = styled.div`
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
 
-.modal-body {
-    padding: 25px;
-    font-size: 1rem;
-    color: #333;
-}
+    .custom-modal {
+        background: white;
+        width: 90%;
+        max-width: 450px;
+        padding: 40px;
+        border-radius: 24px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
 
-.modal-body input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 1rem;
-    box-sizing: border-box;
-}
+        h3 { font-size: 1.8rem; color: #0f172a; margin-bottom: 10px; }
+        p { color: #64748b; margin-bottom: 30px; }
 
-.modal-footer {
-    padding: 15px;
-    border-top: 2px solid #dee2e6;
-    text-align: center;
-}
+        .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            &.accept-icon { color: #22c55e; }
+            &.reject-icon { color: #ef4444; }
+        }
+    }
 
-.modal-footer .btn {
-    font-size: 1.1rem;
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-weight: 600;
-}
+    .scode-modal {
+        text-align: left;
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            h3 { margin: 0; font-size: 1.4rem; }
+            .close-x { background: none; border: none; font-size: 2rem; cursor: pointer; color: #94a3b8; }
+        }
 
-.btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
-    color: white;
-}
+        .form-group {
+            margin-bottom: 20px;
+            label { display: block; margin-bottom: 8px; font-weight: 700; color: #475569; }
+            input, select {
+                width: 100%;
+                padding: 12px;
+                border-radius: 12px;
+                border: 2px solid #e2e8f0;
+                font-family: inherit;
+                &:focus { border-color: #3b82f6; outline: none; }
+            }
+        }
 
-.btn-primary:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
-}
+        .submit-auth-btn {
+            width: 100%;
+            padding: 14px;
+            background: #0f172a;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            &:hover { background: #1e293b; }
+        }
+    }
 
-.btn-secondary {
-    background-color: #6c757d;
-    border-color: #6c757d;
-    color: white;
-}
+    .modal-footer {
+        display: flex;
+        gap: 12px;
+        button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+        }
+        .confirm-btn.green { background: #22c55e; color: white; }
+        .confirm-btn.red { background: #ef4444; color: white; }
+        .cancel-btn { background: #f1f5f9; color: #475569; }
+    }
+`;
 
-.btn-secondary:hover {
-    background-color: #5a6268;
-    border-color: #545b62;
-}
+const RegisterContainer = styled.div`
+    padding: 40px;
+    font-family: 'Baloo 2', cursive;
+    max-width: 1300px;
+    margin: 0 auto;
 
-.btn-success {
-    background-color: #28a745;
-    border-color: #28a745;
-    color: white;
-}
+    .header-area {
+        text-align: center;
+        margin-bottom: 50px;
+        h1 { font-size: 3rem; color: #0f172a; margin: 0; font-weight: 800; }
+        p { color: #64748b; font-size: 1.1rem; }
+    }
 
-.btn-success:hover {
-    background-color: #218838;
-    border-color: #1e7e34;
-} */
+    .table-header {
+        display: flex;
+        padding: 15px 30px;
+        background: #f1f5f9;
+        border-radius: 15px 15px 0 0;
+        font-weight: 800;
+        color: #475569;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        
+        .th-item { flex: 1; text-align: center; }
+        @media (max-width: 900px) { display: none; }
+    }
 
-/* Specific Modal Styling */
- #scodeModal .modal-content {
-    border-radius: 12px;
-    background-color: #f7f7f7;
-    padding: 30px;
-}
+    .EmployeeWrap {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: white;
+        padding: 15px;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
 
-#scodeModal .modal-header {
-    color: white;
-    border-radius: 12px 12px 0 0;
-}
+    .employeeRow {
+        background: #fff;
+        border-radius: 15px;
+        border: 1px solid #f1f5f9;
+        transition: 0.3s;
 
-#scodeModal .modal-header h5 {
-    font-size: 1.5rem;
-    font-weight: bold;
-}
+        &:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            border-color: #e2e8f0;
+        }
 
-#scodeModal input {
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 10px;
-}
+        ul {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            list-style: none;
+            
+            li {
+                flex: 1;
+                text-align: center;
+                color: #334155;
+                font-size: 1.1rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+    }
 
-#scodeModal .btn-success {
-    background-color: #28a745;
-}
+    .col-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
 
-#scodeModal .btn-success:hover {
-    background-color: #218838;
-}
+        button {
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: none;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
 
-#acceptModal .modal-header {
-    background-color: #10b981;
-    color: white;
-}
+        .AcceptBtn { background: #22c55e; &:hover { background: #16a34a; } }
+        .RejectBtn { background: #ef4444; &:hover { background: #dc2626; } }
+    }
 
-#rejectModal .modal-header {
-    background-color: #ef4444;
-    color: white;
-}
-
-.employeeRow {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.employeeRow:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-#scodeModal .modal-header{
-    background-color: #6c757d;
-}
+    .empty-state { text-align: center; padding: 60px; color: #94a3b8; font-style: italic; }
 `;
